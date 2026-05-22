@@ -1,1005 +1,589 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multiplication Galaxy</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a1a;
-    --panel: #12122a;
-    --card: #1a1a38;
-    --accent1: #ff6b6b;
-    --accent2: #ffd93d;
-    --accent3: #6bcb77;
-    --accent4: #4ecdc4;
-    --accent5: #a855f7;
-    --text: #f0f0ff;
-    --muted: #8888aa;
-    --correct: #6bcb77;
-    --wrong: #ff6b6b;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Open Source Aerospace — Engineering Knowledge Base</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #080c10;
+      --surface:   #0d1520;
+      --panel:     #111d2e;
+      --blue:      #1a9fff;
+      --blue-dim:  #0d5fa0;
+      --cyan:      #00e5ff;
+      --grid:      rgba(26,159,255,0.07);
+      --grid-line: rgba(26,159,255,0.13);
+      --text:      #ccdde8;
+      --text-dim:  #5a7a90;
+      --accent:    #ff6b35;
+      --white:     #eaf4ff;
+    }
 
-  /* Stars background */
-  #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-  .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d) infinite; }
-  @keyframes twinkle { 0%,100%{opacity:.2;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    html { scroll-behavior: smooth; }
 
-  /* HEADER */
-  header {
-    width: 100%; text-align: center; padding: 1rem 1rem 0;
-  }
-  .logo { font-family: 'Fredoka One', cursive; font-size: clamp(2rem,6vw,3.5rem); background: linear-gradient(135deg, var(--accent2), var(--accent1), var(--accent5)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .tagline { color: var(--muted); font-size: clamp(0.8rem,2.5vw,1rem); margin-top: 0.2rem; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
 
-  /* STATS BAR */
-  .stats-bar {
-    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
-    padding: 0.75rem 1rem; margin: 0.75rem 1rem 0;
-    background: var(--panel); border-radius: 50px;
-    border: 1px solid #2a2a4a;
-  }
-  .stat { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: clamp(0.8rem,2.5vw,1rem); }
-  .stat-icon { font-size: 1.1em; }
+    /* ── Blueprint grid overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+    }
 
-  /* SCREENS */
-  .screen { width: 100%; max-width: 680px; padding: 1rem; display: none; flex-direction: column; align-items: center; gap: 1rem; }
-  .screen.active { display: flex; }
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--grid-line);
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      color: var(--cyan);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--blue); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.25rem 0.7rem;
+      border-radius: 2px;
+    }
 
-  /* HOME */
-  .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; width: 100%; }
-  .mode-card {
-    background: var(--card); border: 2px solid transparent;
-    border-radius: 20px; padding: 1.25rem 1rem; text-align: center;
-    cursor: pointer; transition: all 0.2s; user-select: none;
-  }
-  .mode-card:hover, .mode-card:focus { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 0 20px color-mix(in srgb, var(--c) 40%, transparent); outline: none; }
-  .mode-card:active { transform: scale(0.96); }
-  .mode-icon { font-size: 2.5rem; margin-bottom: 0.4rem; }
-  .mode-name { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--c); }
-  .mode-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 6rem 3rem 4rem;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .hero-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .hero-tag::before {
+      content: '';
+      display: inline-block; width: 32px; height: 1px;
+      background: var(--blue);
+    }
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.2rem, 6vw, 5rem);
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+    h1 .accent { color: var(--cyan); }
+    h1 .accent2 { color: var(--accent); }
+    .hero-sub {
+      font-size: 1.15rem;
+      font-weight: 300;
+      color: var(--text-dim);
+      max-width: 560px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+    .hero-cta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .btn-primary {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--bg);
+      background: var(--cyan);
+      padding: 0.85rem 2rem;
+      border: none; cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--blue); transform: translateY(-1px); }
+    .btn-secondary {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--blue);
+      padding: 0.85rem 2rem;
+      border: 1px solid var(--blue-dim);
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--blue); color: var(--cyan); }
 
-  .table-select { width: 100%; }
-  .table-select h3 { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--accent2); text-align: center; margin-bottom: 0.5rem; }
-  .table-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.4rem; }
-  .table-btn {
-    background: var(--card); border: 2px solid #2a2a4a; border-radius: 10px;
-    color: var(--text); font-family: 'Fredoka One', cursive; font-size: 1.1rem;
-    padding: 0.5rem; cursor: pointer; transition: all 0.15s; text-align: center;
-  }
-  .table-btn:hover { border-color: var(--accent4); color: var(--accent4); }
-  .table-btn.selected { background: var(--accent4); border-color: var(--accent4); color: #000; font-weight: 800; }
-  .table-btn.sel-all { grid-column: span 2; font-size: 0.85rem; border-color: var(--accent2); color: var(--accent2); }
-  .table-btn.sel-all.selected { background: var(--accent2); color: #000; }
+    /* ── HUD elements ── */
+    .hud-corner {
+      position: absolute;
+      width: 48px; height: 48px;
+      border-color: var(--blue-dim);
+      border-style: solid;
+    }
+    .hud-corner.tl { top: 7rem; left: 3rem; border-width: 2px 0 0 2px; }
+    .hud-corner.br { bottom: 5rem; right: 3rem; border-width: 0 2px 2px 0; }
 
-  .btn-primary {
-    font-family: 'Fredoka One', cursive; font-size: 1.3rem;
-    background: linear-gradient(135deg, var(--accent1), var(--accent5));
-    color: white; border: none; border-radius: 50px;
-    padding: 0.8rem 2.5rem; cursor: pointer; transition: all 0.2s;
-    box-shadow: 0 4px 20px rgba(255,107,107,0.4);
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(255,107,107,0.5); }
-  .btn-primary:active { transform: scale(0.97); }
-  .btn-secondary {
-    font-family: 'Fredoka One', cursive; font-size: 1rem;
-    background: var(--card); color: var(--muted);
-    border: 2px solid #2a2a4a; border-radius: 50px;
-    padding: 0.6rem 1.5rem; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+    .hero-stats {
+      position: absolute;
+      right: 3rem; bottom: 5rem;
+      display: flex; flex-direction: column; gap: 1.5rem;
+      text-align: right;
+    }
+    .stat-item { font-family: 'Share Tech Mono', monospace; }
+    .stat-value { font-size: 1.8rem; color: var(--cyan); line-height: 1; }
+    .stat-label { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; margin-top: 0.2rem; }
 
-  /* GAME SCREEN */
-  .game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem; }
-  .progress-bar { flex: 1; min-width: 120px; height: 12px; background: var(--card); border-radius: 99px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent4), var(--accent5)); border-radius: 99px; transition: width 0.3s ease; }
-  .timer-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
-  .timer-ring svg { transform: rotate(-90deg); }
-  .timer-ring .timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka One', cursive; font-size: 1.4rem; }
+    /* ── SECTION COMMONS ── */
+    section { position: relative; z-index: 1; }
+    .section-inner { max-width: 1200px; margin: 0 auto; padding: 6rem 3rem; }
+    .section-header {
+      display: flex; align-items: baseline; gap: 1.5rem;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--grid-line);
+      padding-bottom: 1.5rem;
+    }
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+    h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
 
-  /* Question */
-  .question-box {
-    background: var(--card); border: 2px solid #2a2a4a;
-    border-radius: 24px; padding: 1.5rem 2rem; text-align: center;
-    width: 100%; position: relative; overflow: hidden;
-  }
-  .question-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(78,205,196,0.05) 0%, transparent 70%); }
-  .question-label { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; }
-  .question-text { font-family: 'Fredoka One', cursive; font-size: clamp(2.5rem,8vw,4.5rem); color: var(--text); line-height: 1; }
-  .question-text span.op { color: var(--accent4); }
-  .question-text span.unknown { color: var(--accent2); }
+    /* ── DEEP DIVES ── */
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5px;
+      background: var(--grid-line);
+    }
+    .article-card {
+      background: var(--surface);
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex; flex-direction: column;
+      transition: background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .article-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .article-card:hover { background: var(--panel); }
+    .article-card:hover::before { transform: scaleX(1); }
+    .card-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text-dim);
+      flex: 1;
+      margin-bottom: 1.5rem;
+    }
+    .card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+    .card-arrow {
+      color: var(--cyan);
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+    .article-card:hover .card-arrow { transform: translateX(4px); }
+    .card-status-live {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: #4dff91;
+    }
+    .card-status-live::before {
+      content: ''; display: inline-block;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4dff91;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; } 50% { opacity:0.3; }
+    }
+    .card-status-soon { color: var(--text-dim); opacity: 0.5; }
+    .article-card.coming-soon { opacity: 0.45; pointer-events: none; }
 
-  /* Answer options (MCQ) */
-  .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; width: 100%; }
-  .answer-btn {
-    font-family: 'Fredoka One', cursive; font-size: clamp(1.4rem,5vw,2rem);
-    background: var(--card); border: 3px solid #2a2a4a; border-radius: 18px;
-    color: var(--text); padding: 1rem; cursor: pointer; transition: all 0.18s;
-    position: relative; overflow: hidden;
-  }
-  .answer-btn:hover:not(:disabled) { border-color: var(--accent4); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(78,205,196,0.2); }
-  .answer-btn:active:not(:disabled) { transform: scale(0.97); }
-  .answer-btn.correct { border-color: var(--correct)!important; background: rgba(107,203,119,0.15)!important; color: var(--correct)!important; animation: pop 0.3s ease; }
-  .answer-btn.wrong { border-color: var(--wrong)!important; background: rgba(255,107,107,0.15)!important; color: var(--wrong)!important; animation: shake 0.3s ease; }
-  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-text p {
+      font-size: 1rem;
+      line-height: 1.9;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+    }
+    .about-text strong { color: var(--cyan); font-weight: 600; }
+    .about-features { display: flex; flex-direction: column; gap: 1px; background: var(--grid-line); }
+    .feature-row {
+      background: var(--surface);
+      padding: 1.25rem 1.5rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .feature-icon {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+      min-width: 3rem;
+      padding-top: 0.15rem;
+    }
+    .feature-body h4 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+    .feature-body p { font-size: 0.83rem; color: var(--text-dim); line-height: 1.6; }
 
-  /* Type answer input */
-  .type-input-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-  .type-input {
-    font-family: 'Fredoka One', cursive; font-size: clamp(2rem,7vw,3rem);
-    text-align: center; width: 180px; background: var(--card);
-    border: 3px solid #2a2a4a; border-radius: 18px; color: var(--text);
-    padding: 0.5rem 1rem; outline: none; transition: border-color 0.2s;
-  }
-  .type-input:focus { border-color: var(--accent4); }
-  .type-input.correct { border-color: var(--correct); color: var(--correct); animation: pop 0.3s; }
-  .type-input.wrong { border-color: var(--wrong); color: var(--wrong); animation: shake 0.3s; }
-  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; max-width: 240px; width: 100%; }
-  .numpad-btn {
-    font-family: 'Fredoka One', cursive; font-size: 1.5rem;
-    background: var(--card); border: 2px solid #2a2a4a; border-radius: 14px;
-    color: var(--text); padding: 0.7rem; cursor: pointer; transition: all 0.15s;
-  }
-  .numpad-btn:hover { border-color: var(--accent4); color: var(--accent4); }
-  .numpad-btn:active { transform: scale(0.93); }
-  .numpad-btn.del { color: var(--accent1); border-color: var(--accent1); }
-  .numpad-btn.go { background: var(--accent3); border-color: var(--accent3); color: #000; }
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--grid-line);
+      padding: 2.5rem 3rem;
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-brand {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--blue-dim);
+    }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .footer-links a:hover { color: var(--blue); }
 
-  /* FILL GRID (table challenge) */
-  .fill-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; width: 100%; }
-  .fill-cell {
-    background: var(--card); border: 2px solid #2a2a4a; border-radius: 12px;
-    padding: 0.6rem; text-align: center; font-family: 'Fredoka One', cursive;
-  }
-  .fill-cell .fc-q { font-size: 0.75rem; color: var(--muted); }
-  .fill-cell .fc-a { font-size: 1.3rem; color: var(--accent2); }
-  .fill-cell.done { border-color: var(--correct); }
-  .fill-cell.done .fc-a { color: var(--correct); }
-  .fill-cell.active { border-color: var(--accent4); background: rgba(78,205,196,0.06); }
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-tag  { animation: fadeUp 0.6s ease both; }
+    h1         { animation: fadeUp 0.7s 0.1s ease both; }
+    .hero-sub  { animation: fadeUp 0.7s 0.2s ease both; }
+    .hero-cta  { animation: fadeUp 0.7s 0.35s ease both; }
+    .hero-stats{ animation: fadeUp 0.7s 0.5s ease both; }
 
-  /* Feedback overlay */
-  #feedback {
-    position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: none; z-index: 50;
-  }
-  .feedback-msg {
-    font-family: 'Fredoka One', cursive; font-size: clamp(2.5rem,10vw,5rem);
-    text-shadow: 0 0 30px currentColor;
-    animation: feedAnim 0.8s ease forwards;
-  }
-  .feedback-msg.big {
-    font-size: clamp(3rem,12vw,6rem);
-  }
-  @keyframes feedAnim { 0%{opacity:0;transform:scale(0.5)} 30%{opacity:1;transform:scale(1.1)} 70%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1) translateY(-30px)} }
+    /* ── SCAN LINE ── */
+    body::after {
+      content: '';
+      position: fixed; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
+      animation: scanline 8s linear infinite;
+      pointer-events: none; z-index: 200;
+    }
+    @keyframes scanline {
+      from { top: -2px; }
+      to   { top: 100vh; }
+    }
 
-  /* Particles */
-  .particle {
-    position: fixed; pointer-events: none; z-index: 40;
-    width: 10px; height: 10px; border-radius: 50%;
-    animation: particleFly 0.8s ease forwards;
-  }
-  @keyframes particleFly { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
-
-  /* RESULTS */
-  .result-card {
-    background: var(--card); border-radius: 24px; border: 2px solid #2a2a4a;
-    padding: 1.5rem; text-align: center; width: 100%;
-  }
-  .result-big { font-family: 'Fredoka One', cursive; font-size: clamp(3rem,10vw,5rem); }
-  .result-label { color: var(--muted); font-size: 0.9rem; margin-top: 0.2rem; }
-  .result-stars { font-size: 2rem; letter-spacing: 0.3em; margin: 0.5rem 0; }
-  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
-  .result-stat { background: var(--panel); border-radius: 14px; padding: 0.75rem; }
-  .result-stat .num { font-family: 'Fredoka One', cursive; font-size: 1.8rem; }
-  .result-stat .lbl { font-size: 0.75rem; color: var(--muted); }
-  .streak-chart { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 0.5rem; }
-  .streak-dot { width: 16px; height: 16px; border-radius: 4px; }
-  .wrong-list { text-align: left; font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; }
-  .wrong-item { display: flex; gap: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid #2a2a4a; }
-  .wrong-item span:first-child { font-family: 'Fredoka One', cursive; color: var(--accent1); min-width: 80px; }
-
-  /* ROCKET mode */
-  .rocket-track { width: 100%; height: 80px; background: var(--card); border-radius: 50px; position: relative; overflow: hidden; border: 2px solid #2a2a4a; margin: 0.5rem 0; }
-  .rocket-fill { height: 100%; border-radius: 50px; background: linear-gradient(90deg, var(--accent4), var(--accent5)); transition: width 0.4s ease; display: flex; align-items: center; }
-  .rocket-emoji { font-size: 2rem; position: absolute; transition: left 0.4s ease; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 0 8px rgba(78,205,196,0.8)); }
-  .finish-flag { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 2rem; }
-
-  /* Responsive */
-  @media (max-width: 480px) {
-    .answers-grid { grid-template-columns: 1fr 1fr; }
-    .fill-grid { grid-template-columns: repeat(3, 1fr); }
-    .table-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-
-  /* Animations on screen transitions */
-  .screen { animation: none; }
-  .screen.slide-in { animation: slideIn 0.3s ease; }
-  @keyframes slideIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-
-  .badge { display: inline-block; font-size: 0.75rem; font-family: 'Fredoka One', cursive; padding: 0.15rem 0.5rem; border-radius: 20px; margin: 0.1rem; }
-
-  .trophy-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem; }
-
-  /* Leaderboard-style combo */
-  .combo-display {
-    position: fixed; top: 80px; right: 16px; z-index: 30;
-    font-family: 'Fredoka One', cursive; font-size: 1.5rem;
-    background: var(--card); border: 2px solid var(--accent2);
-    border-radius: 16px; padding: 0.4rem 0.9rem;
-    color: var(--accent2); transition: all 0.3s;
-    pointer-events: none;
-  }
-  .combo-display.hidden { opacity: 0; transform: scale(0.8); }
-</style>
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; }
+      .nav-links { display: none; }
+      .hero { padding: 5rem 1.5rem 3rem; }
+      .hero-stats { display: none; }
+      .section-inner { padding: 4rem 1.5rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
-<div id="stars"></div>
-<div id="feedback"></div>
-<div class="combo-display hidden" id="comboDisplay">🔥 3x</div>
 
-<div id="app">
-  <header>
-    <div class="logo">✨ Multiplication Galaxy ✨</div>
-    <div class="tagline">Train your math powers — become a multiplication hero!</div>
-  </header>
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">OSA<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#deep-dives">Deep Dives</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="https://open.spotify.com" target="_blank">Podcast</a></li>
+    <li><a href="https://substack.com" target="_blank">Substack</a></li>
+  </ul>
+  <span class="nav-badge">Ardupilot Focus</span>
+</nav>
 
-  <div class="stats-bar">
-    <div class="stat"><span class="stat-icon">⭐</span><span id="totalStars">0</span> Stars</div>
-    <div class="stat"><span class="stat-icon">🏆</span><span id="totalCorrect">0</span> Correct</div>
-    <div class="stat"><span class="stat-icon">🔥</span>Best streak: <span id="bestStreak">0</span></div>
-    <div class="stat" id="trophiesDisplay" title="Trophies"></div>
-  </div>
-
-  <!-- HOME -->
-  <div class="screen active" id="screenHome">
-    <div class="table-select">
-      <h3>Pick your tables:</h3>
-      <div class="table-grid">
-        <button class="table-btn sel-all" onclick="selectAll()" id="btnAll">All (1–12)</button>
-        <button class="table-btn sel-all" onclick="selectHard()" id="btnHard">Hard (6–9)</button>
-        <button class="table-btn" onclick="toggleTable(1)" id="t1">1</button>
-        <button class="table-btn" onclick="toggleTable(2)" id="t2">2</button>
-        <button class="table-btn" onclick="toggleTable(3)" id="t3">3</button>
-        <button class="table-btn" onclick="toggleTable(4)" id="t4">4</button>
-        <button class="table-btn" onclick="toggleTable(5)" id="t5">5</button>
-        <button class="table-btn" onclick="toggleTable(6)" id="t6">6</button>
-        <button class="table-btn" onclick="toggleTable(7)" id="t7">7</button>
-        <button class="table-btn" onclick="toggleTable(8)" id="t8">8</button>
-        <button class="table-btn" onclick="toggleTable(9)" id="t9">9</button>
-        <button class="table-btn" onclick="toggleTable(10)" id="t10">10</button>
-        <button class="table-btn" onclick="toggleTable(11)" id="t11">11</button>
-        <button class="table-btn" onclick="toggleTable(12)" id="t12">12</button>
-      </div>
-    </div>
-    <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--accent4);text-align:center;">Choose a game mode:</div>
-    <div class="mode-grid">
-      <div class="mode-card" style="--c:var(--accent4)" onclick="startGame('blitz')" tabindex="0">
-        <div class="mode-icon">⚡</div>
-        <div class="mode-name">Blitz Quiz</div>
-        <div class="mode-desc">Pick the right answer! Beat the timer!</div>
-      </div>
-      <div class="mode-card" style="--c:var(--accent2)" onclick="startGame('type')" tabindex="0">
-        <div class="mode-icon">🚀</div>
-        <div class="mode-name">Type It Fast</div>
-        <div class="mode-desc">Type the answer as quickly as you can!</div>
-      </div>
-      <div class="mode-card" style="--c:var(--accent3)" onclick="startGame('rocket')" tabindex="0">
-        <div class="mode-icon">🛸</div>
-        <div class="mode-name">Rocket Race</div>
-        <div class="mode-desc">Answer 10 in a row to launch your rocket!</div>
-      </div>
-      <div class="mode-card" style="--c:var(--accent1)" onclick="startGame('table')" tabindex="0">
-        <div class="mode-icon">📋</div>
-        <div class="mode-name">Table Fill</div>
-        <div class="mode-desc">Complete the whole multiplication table!</div>
-      </div>
-      <div class="mode-card" style="--c:var(--accent5)" onclick="startGame('survival')" tabindex="0">
-        <div class="mode-icon">💀</div>
-        <div class="mode-name">Survival</div>
-        <div class="mode-desc">3 lives — don't make mistakes!</div>
-      </div>
-      <div class="mode-card" style="--c:#ff9f43" onclick="startGame('missing')" tabindex="0">
-        <div class="mode-icon">🔢</div>
-        <div class="mode-name">Missing Number</div>
-        <div class="mode-desc">Find the missing factor!</div>
-      </div>
-    </div>
-    <div class="trophy-row" id="homeTrophies"></div>
-  </div>
-
-  <!-- GAME -->
-  <div class="screen" id="screenGame">
-    <div class="game-header">
-      <button class="btn-secondary" onclick="goHome()" style="padding:0.4rem 1rem;font-size:0.85rem;">← Home</button>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:var(--accent2)">Q <span id="qNum">1</span>/<span id="qTotal">10</span></div>
-      <div class="timer-ring" id="timerRing">
-        <svg width="64" height="64" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="26" fill="none" stroke="#2a2a4a" stroke-width="5"/>
-          <circle id="timerArc" cx="32" cy="32" r="26" fill="none" stroke="var(--accent4)" stroke-width="5" stroke-dasharray="163.4" stroke-dashoffset="0" stroke-linecap="round"/>
-        </svg>
-        <div class="timer-text" id="timerText">5</div>
-      </div>
+<!-- HERO -->
+<section>
+  <div class="hero">
+    <div class="hud-corner tl"></div>
+    <div class="hud-corner br"></div>
+    <div class="hero-tag">Open Source Aerospace // Engineering Knowledge Base</div>
+    <h1>Navigate the<br><span class="accent">Stack</span>.<br>Master the <span class="accent2">Physics</span>.</h1>
+    <p class="hero-sub">
+      Scattered across forums, pull requests, and documentation — the knowledge that powers open source drones is hard to find and harder to understand. We fix that.
+    </p>
+    <div class="hero-cta">
+      <a href="#deep-dives" class="btn-primary">Explore Deep Dives</a>
+      <a href="https://substack.com" target="_blank" class="btn-secondary">Subscribe on Substack</a>
     </div>
 
-    <!-- Lives (survival mode) -->
-    <div id="livesRow" style="display:none;font-size:2rem;letter-spacing:0.2em;text-align:center;width:100%;"></div>
-
-    <!-- Rocket track -->
-    <div id="rocketWrap" style="display:none;width:100%">
-      <div style="font-family:'Fredoka One',cursive;color:var(--accent4);text-align:center;margin-bottom:0.25rem;">
-        <span id="rocketCount">0</span>/10 answers — launch the rocket!
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-value">01</div>
+        <div class="stat-label">Deep Dives Published</div>
       </div>
-      <div class="rocket-track">
-        <div class="rocket-fill" id="rocketFill" style="width:0%"></div>
-        <div class="rocket-emoji" id="rocketEmoji" style="left:4px">🚀</div>
-        <div class="finish-flag">🏁</div>
+      <div class="stat-item">
+        <div class="stat-value">∞</div>
+        <div class="stat-label">Topics Incoming</div>
       </div>
-    </div>
-
-    <!-- Question -->
-    <div class="question-box" id="questionBox">
-      <div class="question-label" id="modeLabel">FAST FACTS</div>
-      <div class="question-text" id="questionText"></div>
-    </div>
-
-    <!-- MCQ answers -->
-    <div class="answers-grid" id="answersGrid"></div>
-
-    <!-- Type input -->
-    <div class="type-input-wrap" id="typeWrap" style="display:none">
-      <input class="type-input" id="typeInput" type="number" inputmode="numeric" placeholder="?" autocomplete="off" />
-      <div class="numpad" id="numpad"></div>
-    </div>
-
-    <!-- Combo streak display -->
-    <div style="font-family:'Fredoka One',cursive;font-size:0.9rem;color:var(--muted);text-align:center;" id="streakDisplay"></div>
-  </div>
-
-  <!-- TABLE FILL mode -->
-  <div class="screen" id="screenTable">
-    <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-      <button class="btn-secondary" onclick="goHome()" style="padding:0.4rem 1rem;font-size:0.85rem;">← Home</button>
-      <div style="font-family:'Fredoka One',cursive;color:var(--accent2);">Table: <span id="tableTitle"></span></div>
-      <div style="font-family:'Fredoka One',cursive;color:var(--muted);font-size:0.85rem;"><span id="tableDone">0</span>/<span id="tableTotal">12</span></div>
-    </div>
-    <div class="fill-grid" id="fillGrid"></div>
-    <div class="type-input-wrap" id="tableTypeWrap">
-      <div id="tableCurrentQ" style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--accent4);"></div>
-      <input class="type-input" id="tableInput" type="number" inputmode="numeric" placeholder="?" autocomplete="off" />
-      <div class="numpad" id="tableNumpad"></div>
+      <div class="stat-item">
+        <div class="stat-value">APM</div>
+        <div class="stat-label">Primary Focus</div>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- RESULTS -->
-  <div class="screen" id="screenResults">
-    <div class="result-card">
-      <div class="result-big" id="resultEmoji">🎉</div>
-      <div class="result-big" id="resultScore" style="font-size:3rem"></div>
-      <div class="result-label" id="resultLabel">stars earned!</div>
-      <div class="result-stars" id="resultStars">⭐⭐⭐</div>
-      <div class="result-grid">
-        <div class="result-stat"><div class="num" id="resCorrect">-</div><div class="lbl">Correct</div></div>
-        <div class="result-stat"><div class="num" id="resWrong">-</div><div class="lbl">Wrong</div></div>
-        <div class="result-stat"><div class="num" id="resStreak">-</div><div class="lbl">Best Streak</div></div>
-        <div class="result-stat"><div class="num" id="resTime">-</div><div class="lbl">Avg. seconds</div></div>
+<!-- DEEP DIVES -->
+<section id="deep-dives">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">// 01</span>
+      <h2>Deep Dives</h2>
+    </div>
+
+    <div class="articles-grid">
+
+      <!-- LIVE -->
+      <a class="article-card" href="kalman-filter.html">
+        <div class="card-tag">// Navigation &amp; Estimation</div>
+        <div class="card-title">Kalman Filter in Ardupilot</div>
+        <div class="card-desc">
+          How Ardupilot fuses IMU, GPS, barometer, and compass data through the Extended Kalman Filter to produce a reliable state estimate — even when individual sensors lie.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-live">Live</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- COMING SOON cards -->
+      <div class="article-card coming-soon">
+        <div class="card-tag">// Flight Control</div>
+        <div class="card-title">PID Tuning Deep Dive</div>
+        <div class="card-desc">
+          Proportional, integral, derivative — how Ardupilot's attitude and rate controllers are structured, and how to tune them without destroying hardware.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-soon">Coming Soon</span>
+          <span class="card-arrow">→</span>
+        </div>
       </div>
-      <div class="streak-chart" id="streakChart"></div>
-    </div>
-    <div id="wrongReview" style="width:100%;background:var(--card);border-radius:20px;padding:1rem;display:none">
-      <div style="font-family:'Fredoka One',cursive;color:var(--accent1);margin-bottom:0.5rem;">Review these:</div>
-      <div class="wrong-list" id="wrongList"></div>
-    </div>
-    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;width:100%">
-      <button class="btn-primary" onclick="playAgain()">▶ Play Again</button>
-      <button class="btn-secondary" onclick="goHome()">🏠 Home</button>
+
+      <div class="article-card coming-soon">
+        <div class="card-tag">// Communication</div>
+        <div class="card-title">MAVLink Protocol</div>
+        <div class="card-desc">
+          The lightweight messaging protocol that connects your GCS to the flight controller. Packet structure, heartbeats, command sequences, and mission items.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-soon">Coming Soon</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="card-tag">// Hardware</div>
+        <div class="card-title">IMU Sensor Fusion</div>
+        <div class="card-desc">
+          Accelerometers, gyroscopes, and magnetometers — their individual failure modes and how Ardupilot uses multiple instances to stay airborne when one fails.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-soon">Coming Soon</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="card-tag">// Autonomy</div>
+        <div class="card-title">Mission Planner &amp; Scripting</div>
+        <div class="card-desc">
+          From waypoint missions to Lua scripts — how Ardupilot handles autonomous behavior and how you can extend it without touching the core firmware.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-soon">Coming Soon</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="card-tag">// Failsafe &amp; Safety</div>
+        <div class="card-title">Failsafe Architecture</div>
+        <div class="card-desc">
+          What happens when GPS drops, RC link fails, or battery reaches critical levels — the layered failsafe system that keeps flights recoverable.
+        </div>
+        <div class="card-footer">
+          <span class="card-status-soon">Coming Soon</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
+</section>
 
-<script>
-// ========================
-// STATE
-// ========================
-let stats = JSON.parse(localStorage.getItem('mgStats') || '{"stars":0,"correct":0,"bestStreak":0,"trophies":[]}');
-let selectedTables = [2,3,4,5,6,7,8,9,10];
-let currentMode = '';
-let questions = [];
-let qIndex = 0;
-let score = 0;
-let wrongAnswers = [];
-let sessionHistory = [];
-let streak = 0;
-let sessionBestStreak = 0;
-let sessionCorrect = 0;
-let sessionWrong = 0;
-let totalTime = 0;
-let questionTimes = [];
-let lives = 3;
-let timerInterval = null;
-let timerVal = 0;
-let timerMax = 0;
-let locked = false;
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">// 02</span>
+      <h2>About This Project</h2>
+    </div>
 
-// TABLE FILL state
-let tableNum = 0;
-let tableFillCells = [];
-let tableFillIndex = 0;
-let tableFillCorrect = 0;
+    <div class="about-grid">
+      <div class="about-text">
+        <p>
+          The open source aerospace community produces extraordinary engineering — but the knowledge lives in <strong>GitHub issues at 2am</strong>, half-finished forum threads, and documentation that assumes you already know what you're looking for.
+        </p>
+        <p>
+          This site is a knowledge distillation layer. Each week, we take one concept from the Ardupilot ecosystem, pull every relevant source — docs, PRs, forum answers, code comments — and synthesize it into something you can actually learn from.
+        </p>
+        <p>
+          Every topic ships with a <strong>podcast episode</strong> for lightweight understanding on the go, and an <strong>interactive mindmap</strong> for when you want to go deep. Built for engineers and serious hobbyists who want to understand, not just configure.
+        </p>
+      </div>
 
-const LABELS = { blitz:'BLITZ QUIZ', type:'TYPE IT FAST', rocket:'ROCKET RACE', survival:'SURVIVAL', missing:'MISSING NUMBER' };
-const TIMER_DURATION = { blitz:6, type:10, rocket:7, survival:7, missing:8 };
-const Q_COUNT = { blitz:15, type:15, rocket:10, survival:20, missing:15 };
+      <div class="about-features">
+        <div class="feature-row">
+          <div class="feature-icon">[POD]</div>
+          <div class="feature-body">
+            <h4>Podcast First</h4>
+            <p>Each topic has a companion podcast episode. Understand the concept on your commute, then go deep on the site.</p>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">[MAP]</div>
+          <div class="feature-body">
+            <h4>Interactive Mindmaps</h4>
+            <p>Hierarchical, expandable knowledge maps. Click into any branch for the full technical detail on that sub-topic.</p>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">[SRC]</div>
+          <div class="feature-body">
+            <h4>Primary Sources</h4>
+            <p>Synthesized from Ardupilot docs, forum discussions, pull requests, and code — not Wikipedia or generic AI summaries.</p>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">[EVL]</div>
+          <div class="feature-body">
+            <h4>Evolving Knowledge Base</h4>
+            <p>New deep dives published weekly. Topics grow in depth over time as the community adds context and corrections.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-// ========================
-// STARS BACKGROUND
-// ========================
-(function(){
-  const c = document.getElementById('stars');
-  for(let i=0;i<80;i++){
-    const s = document.createElement('div');
-    s.className='star';
-    const sz = Math.random()*2.5+0.5;
-    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s`;
-    c.appendChild(s);
-  }
-})();
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">Open Source Aerospace // opensourceaerospace.com</div>
+  <div class="footer-links">
+    <a href="https://ardupilot.org" target="_blank">Ardupilot</a>
+    <a href="https://substack.com" target="_blank">Substack</a>
+    <a href="https://open.spotify.com" target="_blank">Podcast</a>
+    <a href="https://github.com" target="_blank">GitHub</a>
+  </div>
+</footer>
 
-// ========================
-// NUMPAD BUILDER
-// ========================
-function buildNumpad(containerId, inputId, submitFn) {
-  const np = document.getElementById(containerId);
-  np.innerHTML='';
-  [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].forEach(v=>{
-    const b=document.createElement('button');
-    b.className='numpad-btn'+(v==='⌫'?' del':v==='✓'?' go':'');
-    b.textContent=v;
-    b.setAttribute('type','button');
-    b.addEventListener('click',()=>{
-      if(locked) return;
-      const inp=document.getElementById(inputId);
-      if(v==='⌫'){ inp.value=inp.value.slice(0,-1); }
-      else if(v==='✓'){ submitFn(); }
-      else { if(inp.value.length<3) inp.value+=v; }
-    });
-    np.appendChild(b);
-  });
-}
-
-// ========================
-// TABLE SELECTION
-// ========================
-function toggleTable(n){
-  const i=selectedTables.indexOf(n);
-  if(i>=0) selectedTables.splice(i,1); else selectedTables.push(n);
-  updateTableUI();
-}
-function selectAll(){ selectedTables=[1,2,3,4,5,6,7,8,9,10,11,12]; updateTableUI(); }
-function selectHard(){ selectedTables=[6,7,8,9]; updateTableUI(); }
-function updateTableUI(){
-  for(let n=1;n<=12;n++){
-    const b=document.getElementById('t'+n);
-    if(b) b.classList.toggle('selected', selectedTables.includes(n));
-  }
-  document.getElementById('btnAll').classList.toggle('selected', selectedTables.length===12);
-  document.getElementById('btnHard').classList.toggle('selected', JSON.stringify(selectedTables.sort())===JSON.stringify([6,7,8,9]));
-}
-updateTableUI();
-
-// ========================
-// QUESTION GENERATOR
-// ========================
-function genQuestion(mode, tables){
-  const a = tables[Math.floor(Math.random()*tables.length)];
-  const b = Math.floor(Math.random()*12)+1;
-  const ans = a*b;
-  if(mode==='missing'){
-    // either missing first or second factor
-    const missingFirst = Math.random()<0.5;
-    return { text: missingFirst ? `? × ${b} = ${ans}` : `${a} × ? = ${ans}`,
-             displayA: missingFirst ? '?' : a, displayB: missingFirst ? b : '?',
-             answer: missingFirst ? a : b, a, b, ans };
-  }
-  return { a, b, ans, answer: ans };
-}
-
-function genWrongOptions(correct, count=3){
-  const opts = new Set([correct]);
-  const range = correct < 10 ? 5 : (correct < 50 ? 12 : 20);
-  while(opts.size < count+1){
-    let w = correct + (Math.floor(Math.random()*range*2)-range);
-    if(w>0 && w!==correct) opts.add(w);
-  }
-  return shuffle([...opts]);
-}
-
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-
-// ========================
-// GAME START
-// ========================
-function startGame(mode){
-  if(selectedTables.length===0){ alert('Please select at least one table!'); return; }
-  currentMode = mode;
-
-  if(mode==='table'){
-    startTableFill();
-    return;
-  }
-
-  qIndex=0; score=0; wrongAnswers=[]; sessionHistory=[];
-  streak=0; sessionBestStreak=0; sessionCorrect=0; sessionWrong=0;
-  totalTime=0; questionTimes=[];
-  lives=3;
-  locked=false;
-
-  const count = Q_COUNT[mode] || 15;
-  questions = [];
-  // Weighted: harder facts come up more
-  const weightedTables = [];
-  selectedTables.forEach(t=>{ 
-    for(let r=0;r<(t>=6&&t<=9?3:1);r++) weightedTables.push(t); 
-  });
-  for(let i=0;i<count;i++) questions.push(genQuestion(mode, weightedTables));
-
-  showScreen('screenGame');
-  document.getElementById('qTotal').textContent=count;
-  document.getElementById('modeLabel').textContent = LABELS[mode]||mode.toUpperCase();
-  document.getElementById('timerRing').style.display = 'flex';
-
-  // Lives
-  const lr=document.getElementById('livesRow');
-  lr.style.display = mode==='survival'?'block':'none';
-  lr.textContent = '❤️'.repeat(lives);
-
-  // Rocket
-  document.getElementById('rocketWrap').style.display = mode==='rocket'?'block':'none';
-  if(mode==='rocket'){ document.getElementById('rocketCount').textContent='0'; updateRocket(0); }
-
-  buildNumpad('numpad','typeInput', submitTypeAnswer);
-  document.getElementById('typeInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitTypeAnswer(); });
-  loadQuestion();
-}
-
-function loadQuestion(){
-  if(qIndex>=questions.length){ endGame(); return; }
-  const q = questions[qIndex];
-  locked=false;
-  const pct = (qIndex/questions.length)*100;
-  document.getElementById('progressFill').style.width=pct+'%';
-  document.getElementById('qNum').textContent=qIndex+1;
-  document.getElementById('streakDisplay').textContent = streak>=3?`🔥 ${streak} in a row!`:'';
-
-  // Combo display
-  const cd = document.getElementById('comboDisplay');
-  if(streak>=3){ cd.textContent=`🔥 ${streak}x`; cd.classList.remove('hidden'); }
-  else { cd.classList.add('hidden'); }
-
-  // Question text
-  const qt = document.getElementById('questionText');
-  if(currentMode==='missing'){
-    qt.innerHTML = q.text.replace('?','<span class="unknown">?</span>').replace('×','<span class="op">×</span>');
-  } else {
-    qt.innerHTML = `${q.a} <span class="op">×</span> ${q.b}`;
-  }
-
-  // Show/hide input types
-  const useType = (currentMode==='type'||currentMode==='rocket');
-  document.getElementById('answersGrid').style.display = useType ? 'none' : 'grid';
-  document.getElementById('typeWrap').style.display = useType ? 'flex' : 'none';
-
-  if(!useType){
-    // MCQ
-    const opts = genWrongOptions(q.answer);
-    const ag = document.getElementById('answersGrid');
-    ag.innerHTML='';
-    opts.forEach(opt=>{
-      const btn=document.createElement('button');
-      btn.className='answer-btn';
-      btn.textContent=opt;
-      btn.onclick=()=>checkMCQ(opt, q.answer, btn);
-      ag.appendChild(btn);
-    });
-  } else {
-    const inp=document.getElementById('typeInput');
-    inp.value=''; inp.className='type-input'; inp.focus();
-  }
-
-  // Timer
-  startTimer(TIMER_DURATION[currentMode]||6, ()=>{ timeUp(q); });
-}
-
-function startTimer(seconds, onEnd){
-  clearInterval(timerInterval);
-  timerMax=seconds; timerVal=seconds;
-  const arc=document.getElementById('timerArc');
-  const circ=163.4;
-  updateTimerDisplay(seconds);
-  const startMs=Date.now();
-  timerInterval=setInterval(()=>{
-    const elapsed=(Date.now()-startMs)/1000;
-    timerVal=Math.max(0,seconds-elapsed);
-    updateTimerDisplay(Math.ceil(timerVal));
-    arc.style.strokeDashoffset=(circ*(1-timerVal/seconds)).toString();
-    arc.style.stroke=timerVal<3?'var(--accent1)':'var(--accent4)';
-    if(timerVal<=0){ clearInterval(timerInterval); onEnd(); }
-  },50);
-}
-
-function updateTimerDisplay(s){
-  document.getElementById('timerText').textContent=s;
-}
-
-function timeUp(q){
-  if(locked) return;
-  locked=true;
-  recordAnswer(false, q.answer, q.answer, 99);
-  streak=0;
-  showFeedback('⏰', '#ff6b6b');
-  flashQuestion(false);
-  setTimeout(()=>{ qIndex++; loadQuestion(); }, 900);
-}
-
-function checkMCQ(chosen, correct, btn){
-  if(locked) return;
-  locked=true;
-  clearInterval(timerInterval);
-  const elapsed=timerMax-timerVal;
-  const ok=(chosen===correct);
-  recordAnswer(ok, chosen, correct, elapsed);
-  btn.classList.add(ok?'correct':'wrong');
-  if(!ok){
-    document.querySelectorAll('.answer-btn').forEach(b=>{ if(parseInt(b.textContent)===correct) b.classList.add('correct'); });
-  }
-  if(ok){ spawnParticles(btn); showFeedback(pickPraise(), '#6bcb77'); }
-  else { showFeedback('❌', '#ff6b6b'); flashQuestion(false); }
-  setTimeout(()=>{ qIndex++; loadQuestion(); }, ok?700:1100);
-}
-
-function submitTypeAnswer(){
-  if(locked) return;
-  const inp=document.getElementById('typeInput');
-  const val=parseInt(inp.value);
-  const q=questions[qIndex];
-  if(isNaN(val)||inp.value==='') return;
-  locked=true;
-  clearInterval(timerInterval);
-  const elapsed=timerMax-timerVal;
-  const ok=(val===q.answer);
-  recordAnswer(ok, val, q.answer, elapsed);
-  inp.className='type-input '+(ok?'correct':'wrong');
-  if(!ok){ inp.value=q.answer; }
-  if(ok){ spawnParticles(inp); showFeedback(pickPraise(), '#6bcb77'); }
-  else { showFeedback('❌', '#ff6b6b'); flashQuestion(false); }
-  // Rocket
-  if(currentMode==='rocket'){
-    updateRocket(sessionCorrect);
-    document.getElementById('rocketCount').textContent=sessionCorrect;
-  }
-  setTimeout(()=>{ qIndex++; loadQuestion(); }, ok?700:1100);
-}
-
-function recordAnswer(ok, given, correct, time){
-  sessionHistory.push(ok);
-  questionTimes.push(time);
-  if(ok){
-    sessionCorrect++;
-    streak++;
-    if(streak>sessionBestStreak) sessionBestStreak=streak;
-    score += 10 + Math.min(streak-1,5)*2;
-  } else {
-    sessionWrong++;
-    streak=0;
-    if(currentMode==='survival'){
-      lives--;
-      document.getElementById('livesRow').textContent='❤️'.repeat(Math.max(0,lives));
-      if(lives<=0){ setTimeout(()=>{ clearInterval(timerInterval); locked=true; showFeedback('💀','#ff6b6b'); setTimeout(showResults,900); }, 500); }
-    }
-    const q=questions[qIndex];
-    wrongAnswers.push({ q:`${q.a} × ${q.b}`, ans:q.answer, given });
-  }
-}
-
-function flashQuestion(ok){
-  const qb=document.getElementById('questionBox');
-  qb.style.borderColor=ok?'var(--correct)':'var(--wrong)';
-  setTimeout(()=>{ qb.style.borderColor='#2a2a4a'; },600);
-}
-
-function updateRocket(n){
-  const pct=Math.min(n/10*100,100);
-  document.getElementById('rocketFill').style.width=pct+'%';
-  document.getElementById('rocketEmoji').style.left=`calc(${pct}% - 32px)`;
-  if(n>=10){ document.getElementById('rocketEmoji').textContent='🎆'; }
-}
-
-function endGame(){
-  clearInterval(timerInterval);
-  locked = true;
-  // Brief celebration before results
-  const pct = sessionCorrect / (questions.length || 1);
-  if(pct === 1){
-    launchFireworks();
-    setTimeout(showResults, 2000);
-  } else if(pct >= 0.7){
-    showFeedback('🎉', '#ffd93d');
-    setTimeout(showResults, 800);
-  } else {
-    showFeedback('💪', '#4ecdc4');
-    setTimeout(showResults, 800);
-  }
-}
-
-function launchFireworks(){
-  const colors=['#ff6b6b','#ffd93d','#6bcb77','#4ecdc4','#a855f7','#ff9f43','#fff'];
-  let count = 0;
-  const interval = setInterval(()=>{
-    if(count++ > 8){ clearInterval(interval); return; }
-    const cx = window.innerWidth * (0.2 + Math.random()*0.6);
-    const cy = window.innerHeight * (0.1 + Math.random()*0.5);
-    for(let i=0;i<20;i++){
-      const p=document.createElement('div');
-      p.className='particle';
-      p.style.left=cx+'px'; p.style.top=cy+'px';
-      p.style.width = (6+Math.random()*8)+'px';
-      p.style.height = p.style.width;
-      p.style.background=colors[Math.floor(Math.random()*colors.length)];
-      const angle=Math.random()*360;
-      const dist=80+Math.random()*120;
-      p.style.setProperty('--tx',`${Math.cos(angle*Math.PI/180)*dist}px`);
-      p.style.setProperty('--ty',`${Math.sin(angle*Math.PI/180)*dist}px`);
-      p.style.animationDuration = '1s';
-      document.body.appendChild(p);
-      setTimeout(()=>p.remove(),1000);
-    }
-  }, 180);
-  showFeedback('🌟', '#ffd93d');
-  setTimeout(()=>showFeedback('PERFECT!', '#ffd93d'), 400);
-}
-
-// ========================
-// TABLE FILL MODE
-// ========================
-function startTableFill(){
-  tableNum = selectedTables[Math.floor(Math.random()*selectedTables.length)];
-  tableFillCells=[];
-  tableFillIndex=0; tableFillCorrect=0;
-  sessionCorrect=0; sessionWrong=0; wrongAnswers=[];
-
-  for(let i=1;i<=12;i++){
-    tableFillCells.push({ a:tableNum, b:i, ans:tableNum*i, done:false });
-  }
-  shuffle(tableFillCells);
-
-  document.getElementById('tableTitle').textContent=`${tableNum}s`;
-  document.getElementById('tableTotal').textContent=12;
-  document.getElementById('tableDone').textContent=0;
-
-  const grid=document.getElementById('fillGrid');
-  grid.innerHTML='';
-  tableFillCells.forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className='fill-cell'+(i===0?' active':'');
-    d.id='fc'+i;
-    d.innerHTML=`<div class="fc-q">${c.a} × ${c.b}</div><div class="fc-a" id="fca${i}">?</div>`;
-    grid.appendChild(d);
-  });
-
-  buildNumpad('tableNumpad','tableInput', submitTableAnswer);
-  document.getElementById('tableInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitTableAnswer(); });
-  document.getElementById('tableInput').value='';
-
-  showScreen('screenTable');
-  updateTableQuestion();
-  document.getElementById('tableInput').focus();
-}
-
-function updateTableQuestion(){
-  const c=tableFillCells[tableFillIndex];
-  document.getElementById('tableCurrentQ').textContent=`${c.a} × ${c.b} = ?`;
-  document.getElementById('tableInput').value='';
-  document.getElementById('tableInput').className='type-input';
-}
-
-function submitTableAnswer(){
-  const inp=document.getElementById('tableInput');
-  const val=parseInt(inp.value);
-  if(isNaN(val)||inp.value==='') return;
-  const c=tableFillCells[tableFillIndex];
-  const ok=(val===c.ans);
-  inp.className='type-input '+(ok?'correct':'wrong');
-  const cell=document.getElementById('fc'+tableFillIndex);
-  const aEl=document.getElementById('fca'+tableFillIndex);
-  if(ok){
-    sessionCorrect++; tableFillCorrect++;
-    c.done=true;
-    aEl.textContent=c.ans;
-    cell.classList.add('done'); cell.classList.remove('active');
-    document.getElementById('tableDone').textContent=tableFillCorrect;
-    spawnParticles(inp);
-    setTimeout(advanceTable, 400);
-  } else {
-    sessionWrong++;
-    wrongAnswers.push({q:`${c.a}×${c.b}`,ans:c.ans,given:val});
-    aEl.textContent='?';
-    setTimeout(()=>{
-      inp.className='type-input';
-      inp.value='';
-    },600);
-  }
-}
-
-function advanceTable(){
-  tableFillIndex++;
-  if(tableFillIndex>=12){ endTableFill(); return; }
-  const cell=document.getElementById('fc'+tableFillIndex);
-  cell.classList.add('active');
-  updateTableQuestion();
-  document.getElementById('tableInput').focus();
-}
-
-function endTableFill(){
-  stats.correct+=sessionCorrect;
-  const earned=sessionCorrect*5;
-  stats.stars+=earned;
-  checkTrophies();
-  localStorage.setItem('mgStats',JSON.stringify(stats));
-  updateStatsBar();
-
-  document.getElementById('resultEmoji').textContent=sessionWrong===0?'🌟':'🎉';
-  document.getElementById('resultScore').textContent='+'+earned;
-  document.getElementById('resultLabel').textContent='stars earned from table!';
-  document.getElementById('resultStars').textContent=sessionWrong===0?'⭐⭐⭐':sessionWrong<4?'⭐⭐':'⭐';
-  document.getElementById('resCorrect').textContent=sessionCorrect;
-  document.getElementById('resWrong').textContent=sessionWrong;
-  document.getElementById('resStreak').textContent='—';
-  document.getElementById('resTime').textContent='—';
-  document.getElementById('streakChart').innerHTML='';
-  if(wrongAnswers.length>0){
-    document.getElementById('wrongReview').style.display='block';
-    document.getElementById('wrongList').innerHTML=wrongAnswers.map(w=>`<div class="wrong-item"><span>${w.q}</span><span>= ${w.ans} (you said ${w.given})</span></div>`).join('');
-  } else { document.getElementById('wrongReview').style.display='none'; }
-  showScreen('screenResults');
-}
-
-// ========================
-// RESULTS
-// ========================
-function showResults(){
-  const earned=score;
-  stats.stars+=earned;
-  stats.correct+=sessionCorrect;
-  if(sessionBestStreak>stats.bestStreak) stats.bestStreak=sessionBestStreak;
-  checkTrophies();
-  localStorage.setItem('mgStats',JSON.stringify(stats));
-  updateStatsBar();
-
-  const total=questions.length;
-  const pct=sessionCorrect/total;
-  document.getElementById('resultEmoji').textContent=pct===1?'🌟':pct>=0.8?'🎉':pct>=0.5?'😊':'💪';
-  document.getElementById('resultScore').textContent='+'+earned;
-  document.getElementById('resultLabel').textContent='stars earned!';
-  document.getElementById('resultStars').textContent=pct===1?'⭐⭐⭐':pct>=0.7?'⭐⭐':'⭐';
-  document.getElementById('resCorrect').textContent=sessionCorrect;
-  document.getElementById('resWrong').textContent=sessionWrong;
-  document.getElementById('resStreak').textContent=sessionBestStreak;
-  const validTimes=questionTimes.filter(t=>t<99);
-  document.getElementById('resTime').textContent=validTimes.length?( validTimes.reduce((a,b)=>a+b,0)/validTimes.length).toFixed(1)+'s':'—';
-
-  // History dots
-  const sc=document.getElementById('streakChart');
-  sc.innerHTML=sessionHistory.map(ok=>`<div class="streak-dot" style="background:${ok?'var(--correct)':'var(--wrong)'}"></div>`).join('');
-
-  // Wrong review
-  if(wrongAnswers.length>0){
-    document.getElementById('wrongReview').style.display='block';
-    document.getElementById('wrongList').innerHTML=wrongAnswers.map(w=>`<div class="wrong-item"><span>${w.q}</span><span>= ${w.ans} (you said ${w.given})</span></div>`).join('');
-  } else { document.getElementById('wrongReview').style.display='none'; }
-
-  showScreen('screenResults');
-}
-
-// ========================
-// TROPHIES
-// ========================
-const TROPHIES = [
-  {id:'first', icon:'🥇', name:'First Win', check:()=>stats.correct>=1},
-  {id:'streak5', icon:'🔥', name:'5 in a row!', check:()=>stats.bestStreak>=5},
-  {id:'streak10', icon:'⚡', name:'10 in a row!', check:()=>stats.bestStreak>=10},
-  {id:'stars100', icon:'⭐', name:'100 Stars', check:()=>stats.stars>=100},
-  {id:'stars500', icon:'🌟', name:'500 Stars', check:()=>stats.stars>=500},
-  {id:'correct50', icon:'🎯', name:'50 Correct', check:()=>stats.correct>=50},
-  {id:'correct200', icon:'🏆', name:'200 Correct', check:()=>stats.correct>=200},
-  {id:'correct500', icon:'👑', name:'500 Correct', check:()=>stats.correct>=500},
-];
-function checkTrophies(){
-  TROPHIES.forEach(t=>{ if(!stats.trophies.includes(t.id)&&t.check()){ stats.trophies.push(t.id); showFeedback(t.icon+'🏆',  '#ffd93d'); } });
-}
-function updateStatsBar(){
-  document.getElementById('totalStars').textContent=stats.stars;
-  document.getElementById('totalCorrect').textContent=stats.correct;
-  document.getElementById('bestStreak').textContent=stats.bestStreak;
-  const td=document.getElementById('trophiesDisplay');
-  td.innerHTML=stats.trophies.map(id=>{ const t=TROPHIES.find(x=>x.id===id); return t?`<span title="${t.name}">${t.icon}</span>`:''; }).join('');
-  document.getElementById('homeTrophies').innerHTML=stats.trophies.map(id=>{ const t=TROPHIES.find(x=>x.id===id); return t?`<span class="badge" style="background:rgba(255,217,61,0.15);color:var(--accent2);border:1px solid var(--accent2)">${t.icon} ${t.name}</span>`:''; }).join('');
-}
-updateStatsBar();
-
-// ========================
-// FEEDBACK
-// ========================
-const PRAISES=['⭐','🎉','💥','🚀','🌟','✨','🎯','🔥','💪','🎊'];
-function pickPraise(){ return PRAISES[Math.floor(Math.random()*PRAISES.length)]; }
-
-function showFeedback(text, color){
-  const fb=document.getElementById('feedback');
-  const el=document.createElement('div');
-  el.className='feedback-msg';
-  el.style.color=color||'white';
-  el.textContent=text;
-  fb.appendChild(el);
-  setTimeout(()=>el.remove(), 900);
-}
-
-function spawnParticles(el){
-  const rect=el.getBoundingClientRect();
-  const cx=rect.left+rect.width/2;
-  const cy=rect.top+rect.height/2;
-  const colors=['#ff6b6b','#ffd93d','#6bcb77','#4ecdc4','#a855f7','#ff9f43'];
-  for(let i=0;i<12;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.left=cx+'px'; p.style.top=cy+'px';
-    p.style.background=colors[Math.floor(Math.random()*colors.length)];
-    const angle=Math.random()*360;
-    const dist=60+Math.random()*80;
-    p.style.setProperty('--tx',`${Math.cos(angle*Math.PI/180)*dist}px`);
-    p.style.setProperty('--ty',`${Math.sin(angle*Math.PI/180)*dist}px`);
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),800);
-  }
-}
-
-// ========================
-// NAVIGATION
-// ========================
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>{ s.classList.remove('active','slide-in'); });
-  const s=document.getElementById(id);
-  s.classList.add('active');
-  setTimeout(()=>s.classList.add('slide-in'),10);
-}
-
-function goHome(){
-  clearInterval(timerInterval);
-  locked=true;
-  showScreen('screenHome');
-}
-
-function playAgain(){
-  if(currentMode==='table') startGame('table');
-  else startGame(currentMode);
-}
-
-// Keyboard support on home
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.getElementById('screenHome').classList.contains('active')&&selectedTables.length>0){
-    startGame('blitz');
-  }
-});
-</script>
 </body>
 </html>
