@@ -364,6 +364,12 @@
       color: var(--text);
     }
     .detail-body strong { color: var(--cyan); font-weight: 600; }
+    .detail-body br + br { display: block; content: ''; margin-top: -0.5rem; }
+    .detail-body .sec-head {
+      display: block;
+      margin-top: 1.1rem;
+    }
+    .detail-body .sec-head + br { display: none; }
     .detail-body em { color: var(--text-dim); font-style: italic; }
     .detail-body code {
       font-family: 'Share Tech Mono', monospace;
@@ -693,7 +699,7 @@ const MAP = [
 
 <strong>Core Estimation States & Operational Logic</strong><br>At its core, the EKF operates on a continuous <strong>predict-and-correct cycle</strong>. During the prediction phase, it integrates high-rate angular rates and accelerations from the IMU. When an external sensor measurement arrives, it calculates an <em>innovation</em> — the exact mathematical difference between the internal prediction and the actual sensor reading. The covariance matrix tracks 24 fundamental states: Attitude (quaternions), Velocity (NED), Position (NED), Gyro biases and scale factors, Z-accelerometer bias, Earth magnetic field, Body magnetic field, and Wind Velocity.
 
-<strong>IMU vs. External Sensors</strong><br>A critical architectural distinction: IMU data is treated fundamentally differently than external sensor data. The EKF assumes IMU data is the high-rate foundational truth — integrating angular rates to calculate attitude, removing gravity, and integrating accelerations to predict velocity and position. Unlike GPS or barometer packets — which are compared against the prediction and actively rejected if they exceed a statistical <em>innovation gate</em> — <strong>raw IMU data cannot be mathematically rejected by a single filter instance</strong>. If the IMU feeds anomalous data such as severe vibration clipping, it inherently corrupts the baseline prediction, causing innovations for all external sensors to spike simultaneously.
+<span class="sec-head"><strong>IMU vs. External Sensors</strong></span><br>A critical architectural distinction: IMU data is treated fundamentally differently than external sensor data. The EKF assumes IMU data is the high-rate foundational truth — integrating angular rates to calculate attitude, removing gravity, and integrating accelerations to predict velocity and position. Unlike GPS or barometer packets — which are compared against the prediction and actively rejected if they exceed a statistical <em>innovation gate</em> — <strong>raw IMU data cannot be mathematically rejected by a single filter instance</strong>. If the IMU feeds anomalous data such as severe vibration clipping, it inherently corrupts the baseline prediction, causing innovations for all external sensors to spike simultaneously.
 
 <div class="callout">
   <span class="callout-icon">[!] SAFETY</span>
@@ -707,6 +713,37 @@ const MAP = [
     id: "s1",
     label: "Generations",
     items: [
+      { id: "s1-3", label: "DCM", tag: "// Fallback", title: "DCM — Direction Cosine Matrix Legacy Fallback", body: `State estimation is the bedrock of autonomous flight. Before complex predictive filters were practical, ArduPilot relied on the <strong>Direction Cosine Matrix (DCM)</strong> algorithm — a computationally lightweight, matrix-based orientation representation used to estimate vehicle attitude and position. While modern flight controllers rely on EKF2 and EKF3 because they can optimally fuse multiple sensors and gracefully reject bad data, DCM remains deeply embedded in the architecture as a <strong>critical safety fallback</strong>.
+
+<span class="sec-head"><strong>Historical Context</strong></span><br>DCM was the standard during the <em>8-bit AVR processor era</em> (APM 1 and 2 boards), which completely lacked the memory and floating-point processing power required to run a 24-state EKF. As hardware evolved to 32-bit systems like the Pixhawk, primary attitude control transitioned to a quaternion-based EKF approach. Rather than discarding the legacy DCM code, developers kept it running quietly in the background alongside the active EKF cores — providing an immediate, resilient attitude solution in the event of catastrophic filter divergence.
+
+<span class="sec-head"><strong>Implementation & Fallback Logic</strong></span><br>ArduPilot can run up to five estimators simultaneously. The system enforces a strict safety fallback structure:
+
+<div class="code-block"><span class="cb-comment">// ArduPilot estimator hierarchy</span>
+<span class="cb-label">Running simultaneously:</span>
+  DCM       (always active, background)
+  EKF2      (if EK2_ENABLE=1)
+  EKF3      (if EK3_ENABLE=1, default)
+
+<span class="cb-label">Fallback path on EKF failure:</span>
+  EKF3  →  <span class="cb-val">DCM</span>   (NOT EKF3 → EKF2 → DCM)
+
+<span class="cb-comment">// When EKF diverges:</span>
+<span class="cb-comment">// 1. EKF disables itself for 10-second window</span>
+<span class="cb-comment">// 2. Vehicle flies on DCM</span>
+<span class="cb-comment">// 3. EKF resets initial states from current DCM state</span>
+<span class="cb-comment">// 4. EKF attempts clean recovery</span></div>
+
+<strong>Edge Case: Compass-less Fixed-Wing Navigation</strong><br>Because EKF3 cannot resolve yaw alignment without a magnetometer until it calculates a velocity vector from forward movement, a <em>compass-less plane will actively fall back to DCM immediately after arming</em>. Ground control stations will flag an <em>"Unhealthy AHRS"</em> warning while stationary — however, once the aircraft accelerates and moves forward, EKF3 achieves yaw alignment and seamlessly retakes control.
+
+<span class="sec-head"><strong>Key Parameters</strong></span>
+<div class="code-block"><span class="cb-key">AHRS_EKF_USE</span>  = <span class="cb-val">0</span>   <span class="cb-comment">// Force DCM only (Plane/Rover). ArduCopter hardcoded to 1.</span>
+<span class="cb-key">AHRS_GPS_USE</span>  = <span class="cb-val">0</span>   <span class="cb-comment">// 0=dead reckoning, 1=GPS horiz pos, 2=GPS pos+alt</span>
+
+<span class="cb-comment">// AHRS_OPTIONS bitmask — disable automatic DCM fallback</span>
+<span class="cb-key">Bit 0</span>  DisableDCMFallbackFW     <span class="cb-comment">// Fixed-wing</span>
+<span class="cb-key">Bit 1</span>  DisableDCMFallbackVTOL   <span class="cb-comment">// VTOL platforms</span></div>` },
+
       { id: "s1-1", label: "EKF2", tag: "// Legacy", title: "EKF2 — 24-State Dual-IMU Filter", body: `Achieving reliable autonomous flight requires highly accurate state estimation — determining a vehicle's attitude, velocity, and position in 3D space. Initially ArduPilot relied on DCM, a first-generation algorithm well-suited for older 8-bit microprocessors but lacking the mathematical sophistication to gracefully reject bad sensor data. With the advent of 32-bit flight controllers like the Pixhawk, the system evolved to use an Extended Kalman Filter, introducing <strong>EKF2 as its second-generation primary estimator</strong>. By fusing data from accelerometers, gyroscopes, compasses, GPS, and barometers, EKF2 mathematically models the reliability of each sensor — allowing it to reject anomalous data rather than passing errors directly to the attitude control loops.
 
 <strong>24-State Filter</strong><br>EKF2 tracks a <strong>24-element state vector</strong>:
@@ -724,7 +761,7 @@ const MAP = [
 
 Rather than directly estimating quaternion orientations — which introduces problematic linearisation errors across large angle changes — EKF2 estimates an <em>error rotation vector</em> that it subsequently applies to the quaternions using inertial navigation equations. To handle inherent sensor latency, EKF2 runs on a <strong>delayed time horizon</strong>: it fuses delayed measurements using states and covariance matrices from that exact past moment. An output predictor (complementary filter) then pushes corrected states forward to the current time horizon — a methodology inspired by research from Ali Khosravian at the Australian National University.
 
-<strong>Multi-Core Design & Dual IMU Support</strong><br>EKF2 can instantiate a completely separate 24-state filter core (or <em>lane</em>) for each physical IMU on the board.
+<span class="sec-head"><strong>Multi-Core Design & Dual IMU Support</strong></span><br>EKF2 can instantiate a completely separate 24-state filter core (or <em>lane</em>) for each physical IMU on the board.
 
 <div class="code-block"><span class="cb-comment">// Original Pixhawk dual-IMU setup</span>
 <span class="cb-key">Lane 0</span>   MPU-6000   sampled at <span class="cb-val">1000 Hz</span>   (primary)
@@ -770,38 +807,7 @@ Rather than directly estimating quaternion orientations — which introduces pro
 <div class="callout callout-info">
   <span class="callout-icon">[i] INSIGHT</span>
   <div class="callout-text"><strong>Dead reckoning survival:</strong> EKF3 has been enhanced to allow dead reckoning back to home using wind drag estimates if GPS is completely lost. Advanced users can also implement <em>manual lane switching mid-flight</em> via a custom Lua script — forcefully selecting an active core, which is highly valuable for testing or overriding the EKF when a specific sensor combination behaves erratically.</div>
-</div>` },
-
-      { id: "s1-3", label: "DCM", tag: "// Fallback", title: "DCM — Direction Cosine Matrix Legacy Fallback", body: `State estimation is the bedrock of autonomous flight. Before complex predictive filters were practical, ArduPilot relied on the <strong>Direction Cosine Matrix (DCM)</strong> algorithm — a computationally lightweight, matrix-based orientation representation used to estimate vehicle attitude and position. While modern flight controllers rely on EKF2 and EKF3 because they can optimally fuse multiple sensors and gracefully reject bad data, DCM remains deeply embedded in the architecture as a <strong>critical safety fallback</strong>.
-
-<strong>Historical Context</strong><br>DCM was the standard during the <em>8-bit AVR processor era</em> (APM 1 and 2 boards), which completely lacked the memory and floating-point processing power required to run a 24-state EKF. As hardware evolved to 32-bit systems like the Pixhawk, primary attitude control transitioned to a quaternion-based EKF approach. Rather than discarding the legacy DCM code, developers kept it running quietly in the background alongside the active EKF cores — providing an immediate, resilient attitude solution in the event of catastrophic filter divergence.
-
-<strong>Implementation & Fallback Logic</strong><br>ArduPilot can run up to five estimators simultaneously. The system enforces a strict safety fallback structure:
-
-<div class="code-block"><span class="cb-comment">// ArduPilot estimator hierarchy</span>
-<span class="cb-label">Running simultaneously:</span>
-  DCM       (always active, background)
-  EKF2      (if EK2_ENABLE=1)
-  EKF3      (if EK3_ENABLE=1, default)
-
-<span class="cb-label">Fallback path on EKF failure:</span>
-  EKF3  →  <span class="cb-val">DCM</span>   (NOT EKF3 → EKF2 → DCM)
-
-<span class="cb-comment">// When EKF diverges:</span>
-<span class="cb-comment">// 1. EKF disables itself for 10-second window</span>
-<span class="cb-comment">// 2. Vehicle flies on DCM</span>
-<span class="cb-comment">// 3. EKF resets initial states from current DCM state</span>
-<span class="cb-comment">// 4. EKF attempts clean recovery</span></div>
-
-<strong>Edge Case: Compass-less Fixed-Wing Navigation</strong><br>Because EKF3 cannot resolve yaw alignment without a magnetometer until it calculates a velocity vector from forward movement, a <em>compass-less plane will actively fall back to DCM immediately after arming</em>. Ground control stations will flag an <em>"Unhealthy AHRS"</em> warning while stationary — however, once the aircraft accelerates and moves forward, EKF3 achieves yaw alignment and seamlessly retakes control.
-
-<strong>Key Parameters</strong>
-<div class="code-block"><span class="cb-key">AHRS_EKF_USE</span>  = <span class="cb-val">0</span>   <span class="cb-comment">// Force DCM only (Plane/Rover). ArduCopter hardcoded to 1.</span>
-<span class="cb-key">AHRS_GPS_USE</span>  = <span class="cb-val">0</span>   <span class="cb-comment">// 0=dead reckoning, 1=GPS horiz pos, 2=GPS pos+alt</span>
-
-<span class="cb-comment">// AHRS_OPTIONS bitmask — disable automatic DCM fallback</span>
-<span class="cb-key">Bit 0</span>  DisableDCMFallbackFW     <span class="cb-comment">// Fixed-wing</span>
-<span class="cb-key">Bit 1</span>  DisableDCMFallbackVTOL   <span class="cb-comment">// VTOL platforms</span></div>` }
+</div>` }
     ]
   },
   {
@@ -845,7 +851,7 @@ Rather than directly estimating quaternion orientations — which introduces pro
 
 Inside the EKF3 covariance matrix, velocities are tracked as <strong>States 4 (VN), 5 (VE), 6 (VD)</strong>. The fused velocity estimates are logged in <code>XKF1</code> (or <code>NKF1</code> for EKF2) as <code>VN</code>, <code>VE</code>, and <code>VD</code> in m/s. Discrepancies between predicted and measured velocity are <em>innovations</em>, logged as <code>IVN</code>, <code>IVE</code>, and <code>IVD</code>.
 
-<strong>Key Parameters</strong>
+<span class="sec-head"><strong>Key Parameters</strong></span>
 <div class="code-block"><span class="cb-comment">// Velocity source selection</span>
 <span class="cb-key">EK3_SRC1_VELXY</span>  = <span class="cb-val">3</span>      <span class="cb-comment">// 3=GPS, 5=Optical Flow, 6=ExternalNav</span>
 <span class="cb-key">EK3_SRC1_VELZ</span>   = <span class="cb-val">3</span>      <span class="cb-comment">// 3=GPS, 6=ExternalNav</span>
@@ -874,7 +880,7 @@ Inside the EKF3 covariance matrix, velocities are tracked as <strong>States 4 (V
 
 <strong>The Flat-Earth Assumption</strong><br>To manage the Earth's curvature without extreme computational overhead, the EKF does not navigate in global lat/lon. Instead, it establishes an immutable local <strong>EKF Origin</strong> — a locally flat NED reference frame — as soon as the vehicle obtains a valid 3D fix. This allows ArduPilot platforms to fly linear tracks over 1000km without accumulating significant coordinate distortion errors.
 
-<strong>Key Parameters</strong>
+<span class="sec-head"><strong>Key Parameters</strong></span>
 <div class="code-block"><span class="cb-comment">// Position source selection</span>
 <span class="cb-key">EK3_SRC1_POSXY</span>  = <span class="cb-val">3</span>      <span class="cb-comment">// 3=GPS, 4=Beacon, 6=ExternalNav</span>
 <span class="cb-key">EK3_SRC1_POSZ</span>   = <span class="cb-val">1</span>      <span class="cb-comment">// 1=Baro (default), 3=GPS, 2=Rangefinder (caution)</span>
@@ -904,7 +910,7 @@ Inside the EKF3 covariance matrix, velocities are tracked as <strong>States 4 (V
 
 <strong>Estimation Logic & Failsafes</strong><br>Because catastrophic sensor errors often manifest first as sudden, massive gyro bias changes, the EKF uses these states as a <strong>primary safety tripwire</strong> — if divergence is detected, DCM fallback is triggered. For vehicles in GPS-denied environments, the EKF uses a specialised <em>"on-ground not-moving test"</em> to aggressively learn the yaw gyro bias before takeoff. Modern EKF3 also actively learns biases of <em>inactive</em> IMUs in the background — enabling seamless IMU failover without attitude jumps.
 
-<strong>Key Parameters</strong>
+<span class="sec-head"><strong>Key Parameters</strong></span>
 <div class="code-block"><span class="cb-comment">// Process noise — controls how fast the filter learns bias changes</span>
 <span class="cb-key">EK3_GBIAS_P_NSE</span>  = <span class="cb-val">0.001</span>  <span class="cb-comment">// rad/s — gyro bias random walk (higher = learns faster, noisier)</span>
 <span class="cb-key">EK2_GSCL_P_NSE</span>   = <span class="cb-val">0.001</span>  <span class="cb-comment">// scale factor learning rate</span>
@@ -1047,7 +1053,7 @@ Fused wind estimates are logged in <code>XKF2</code> (EKF3) or <code>NKF2</code>
 
 <strong>Sensor Affinity & Moving Baseline</strong><br>EKF3 handles dual-GPS setups through <em>sensor affinity</em>. Modern RTK systems (dual u-blox F9P) unlock <strong>GPS-for-Yaw (Moving Baseline)</strong>: measuring signal phase differences between two antennas provides a highly accurate yaw solution without a compass.
 
-<strong>Key Parameters</strong>
+<span class="sec-head"><strong>Key Parameters</strong></span>
 <div class="code-block"><span class="cb-comment">// Measurement noise — match to your GPS quality</span>
 <span class="cb-key">EK3_POSNE_M_NSE</span>  = <span class="cb-val">0.50</span>   <span class="cb-comment">// m    — horizontal position RMS noise</span>
 <span class="cb-key">EK3_VELNE_M_NSE</span>  = <span class="cb-val">0.30</span>   <span class="cb-comment">// m/s  — horizontal velocity RMS noise</span>
@@ -1103,7 +1109,7 @@ Fused wind estimates are logged in <code>XKF2</code> (EKF3) or <code>NKF2</code>
 
       { id: "s3-4", label: "Barometric Pressure", tag: "// Altitude", title: "Barometer — Altitude Redundancy", body: `Air pressure is highly sensitive to environmental and aerodynamic disturbances, forcing engineers to implement several advanced compensation algorithms.
 
-<strong>Aerodynamic Drag & Wind Compensation</strong><br>During fast forward flight, airflow creates a momentary low-pressure bubble over the flight controller, tricking the barometer into thinking the vehicle is climbing and causing uncommanded descent.
+<span class="sec-head"><strong>Aerodynamic Drag & Wind Compensation</strong></span><br>During fast forward flight, airflow creates a momentary low-pressure bubble over the flight controller, tricking the barometer into thinking the vehicle is climbing and causing uncommanded descent.
 
 <div class="code-block"><span class="cb-comment">// Barometer wind compensation — requires EKF wind estimation</span>
 <span class="cb-key">BARO1_WCF_ENABLE</span>  = <span class="cb-val">1</span>       <span class="cb-comment">// enable dynamic pressure cancellation</span>
@@ -1190,7 +1196,7 @@ Fused wind estimates are logged in <code>XKF2</code> (EKF3) or <code>NKF2</code>
 
       { id: "s3-7", label: "External Navigation", tag: "// Beacons / Odometry", title: "External Navigation — Beacons, T265, Odometry", body: `Vehicles operating in GPS-denied environments require External Navigation inputs — <strong>Visual Odometry (VIO)</strong> cameras like the ModalAI VOXL or Intel RealSense T265, <strong>RF Beacons</strong> like Pozyx or UWB systems, and <strong>Wheel Encoders</strong>. Within the EKF, these inputs replace GPS as the absolute kinematic anchors for position, velocity, and yaw correction.
 
-<strong>MAVLink Message Types</strong>
+<span class="sec-head"><strong>MAVLink Message Types</strong></span>
 <div class="code-block"><span class="cb-comment">// Preferred: ODOMETRY message (MAVLink ID 331)</span>
 <span class="cb-comment">// Contains: position, velocity, quaternion, angular_velocity, covariance</span>
 <span class="cb-key">ODOMETRY</span>                 <span class="cb-comment">// full 6DOF with covariance — preferred</span>
@@ -1459,7 +1465,7 @@ When an external measurement arrives, the EKF tests it against a predefined stat
     items: [
       { id: "s7-1", label: "Replay Tool", tag: "// Developer Utility", title: "Replay — Offline EKF Simulation & Validation", body: `Diagnosing navigational failures or testing mathematical tweaks in a 24-state EKF is incredibly complex. To safely investigate anomalies, engineers need a way to recreate the exact mathematical state of the vehicle offline. The <strong>Replay tool</strong> is a dedicated C++ developer utility that feeds recorded, high-rate IMU and external sensor data from a DataFlash log directly back into the ArduPilot EKF codebase on a desktop computer — without ever risking a physical airframe.
 
-<strong>Required Pre-Flight Configuration</strong>
+<span class="sec-head"><strong>Required Pre-Flight Configuration</strong></span>
 <div class="code-block"><span class="cb-comment">// Must be set BEFORE the flight you want to replay</span>
 <span class="cb-key">LOG_REPLAY</span>        = <span class="cb-val">1</span>   <span class="cb-comment">// enable high-rate raw sensor logging for EKF replay</span>
 <span class="cb-key">LOG_DISARMED</span>      = <span class="cb-val">1</span>   <span class="cb-comment">// EKF needs pre-flight init data — must log before arming</span>
