@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kalman Filter — Open Source Aerospace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,136 +194,153 @@
     }
 
     /* ════════════════════════════════════
-       MINDMAP COMPONENT
+       KNOWLEDGE EXPLORER COMPONENT
     ════════════════════════════════════ */
-    #mindmap-root {
-      position: relative;
+
+    /* ── Outer shell ── */
+    #mm-shell {
+      display: grid;
+      grid-template-columns: 320px 1fr;
       background: var(--deep);
       border: 1px solid var(--grid-line);
-      overflow: hidden;
-      user-select: none;
+      min-height: 520px;
     }
 
-    .mindmap-canvas {
-      width: 100%; min-height: 600px;
-      position: relative;
-      padding: 3rem 2rem;
-      overflow: visible;
+    /* ── LEFT PANEL: topic list ── */
+    #mm-left {
+      border-right: 1px solid var(--grid-line);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Center node */
-    .mm-center {
-      position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, var(--blue-dim), #0a2a48);
-      border: 2px solid var(--cyan);
-      padding: 1.1rem 2rem;
+    /* Central root label at top of left panel */
+    .mm-root-label {
+      padding: 1.25rem 1.5rem;
       font-family: 'Orbitron', monospace;
-      font-size: 1rem;
+      font-size: 0.75rem;
       font-weight: 900;
-      color: var(--white);
-      letter-spacing: 0.06em;
-      text-align: center;
-      box-shadow: 0 0 32px rgba(0,229,255,0.2);
-      z-index: 10;
-      clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
-      white-space: nowrap;
+      letter-spacing: 0.15em;
+      color: var(--cyan);
+      border-bottom: 1px solid var(--grid-line);
+      background: rgba(0,229,255,0.04);
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 0.75rem;
     }
-
-    /* SVG connector layer */
-    #mm-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 1;
-      overflow: visible;
-    }
-    #mm-svg line {
-      stroke: var(--grid-line);
-      stroke-width: 1.5;
-      transition: stroke 0.3s, stroke-width 0.3s;
-    }
-    #mm-svg line.active { stroke: var(--blue-dim); stroke-width: 2; }
-    #mm-svg line.leaf-line { stroke-dasharray: 4 4; }
-
-    /* Nodes */
-    .mm-node {
-      position: absolute;
-      z-index: 5;
-      cursor: pointer;
-      transition: transform 0.18s;
-    }
-    .mm-node:hover { transform: scale(1.04); z-index: 20; }
-
-    .mm-node .mm-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      padding: 0.55rem 1rem;
-      border: 1px solid;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 0.6rem;
-      white-space: nowrap;
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-    .mm-node .mm-expand-icon {
-      font-size: 0.65rem;
-      opacity: 0.6;
-      transition: transform 0.25s, opacity 0.2s;
+    .mm-root-label::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border: 1px solid var(--cyan);
+      background: rgba(0,229,255,0.3);
       flex-shrink: 0;
     }
-    .mm-node.open .mm-expand-icon { transform: rotate(90deg); opacity: 1; }
 
-    /* Tier colours */
-    .mm-node.tier-1 .mm-label {
-      background: rgba(0,229,255,0.07);
-      border-color: var(--node-1);
+    /* Tier-1 section headers */
+    .mm-t1 {
+      cursor: pointer;
+      border-bottom: 1px solid var(--grid-line);
+      transition: background 0.2s;
+    }
+    .mm-t1-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1.5rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
       color: var(--node-1);
+      gap: 0.75rem;
+      transition: color 0.2s;
     }
-    .mm-node.tier-1:hover .mm-label,
-    .mm-node.tier-1.open .mm-label {
-      background: rgba(0,229,255,0.15);
-      box-shadow: 0 0 16px rgba(0,229,255,0.2);
+    .mm-t1-header-left { display: flex; align-items: center; gap: 0.6rem; }
+    .mm-t1-index {
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      min-width: 1.6rem;
     }
-    .mm-node.tier-2 .mm-label {
-      background: rgba(26,159,255,0.06);
-      border-color: var(--node-2);
-      color: var(--node-2);
+    .mm-t1-chevron {
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      transition: transform 0.25s, color 0.2s;
+      flex-shrink: 0;
     }
-    .mm-node.tier-2:hover .mm-label,
-    .mm-node.tier-2.open .mm-label {
-      background: rgba(26,159,255,0.14);
-      box-shadow: 0 0 12px rgba(26,159,255,0.2);
+    .mm-t1.open .mm-t1-chevron { transform: rotate(90deg); color: var(--cyan); }
+    .mm-t1:hover .mm-t1-header { background: rgba(0,229,255,0.04); }
+    .mm-t1.open .mm-t1-header { color: var(--cyan); }
+    .mm-t1.active-section .mm-t1-header { background: rgba(0,229,255,0.07); }
+
+    /* Tier-2 sub-items (leaves) */
+    .mm-leaves {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0,0,0,0.2);
     }
-    .mm-node.tier-leaf .mm-label {
-      background: rgba(155,109,255,0.06);
-      border-color: var(--node-3);
+    .mm-t1.open .mm-leaves { max-height: 600px; }
+
+    .mm-leaf {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.6rem 1.5rem 0.6rem 3rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.67rem;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(26,159,255,0.05);
+      transition: color 0.15s, background 0.15s;
+    }
+    .mm-leaf::before {
+      content: '—';
+      color: var(--blue-dim);
+      flex-shrink: 0;
+      font-size: 0.6rem;
+    }
+    .mm-leaf:last-child { border-bottom: none; }
+    .mm-leaf:hover { color: var(--node-3); background: rgba(155,109,255,0.06); }
+    .mm-leaf.active {
       color: var(--node-3);
-      font-size: 0.65rem;
-    }
-    .mm-node.tier-leaf:hover .mm-label {
-      background: rgba(155,109,255,0.14);
-      box-shadow: 0 0 10px rgba(155,109,255,0.2);
+      background: rgba(155,109,255,0.1);
+      border-left: 2px solid var(--node-3);
+      padding-left: calc(3rem - 2px);
     }
 
-    /* ── DETAIL PANEL ── */
-    #detail-panel {
-      position: relative; z-index: 1;
-      margin-top: 1.5px;
-      background: var(--surface);
-      border: 1px solid var(--grid-line);
-      border-top: none;
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s;
-      padding: 0 2.5rem;
+    /* ── RIGHT PANEL: detail view ── */
+    #mm-right {
+      padding: 2rem 2rem 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
-    #detail-panel.open {
-      max-height: 600px;
-      padding: 2rem 2.5rem;
+
+    .mm-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 1rem;
+      opacity: 0.35;
     }
+    .mm-placeholder-icon {
+      width: 48px; height: 48px;
+      border: 1px solid var(--blue-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      color: var(--blue-dim);
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    }
+    .mm-placeholder p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    /* Detail content */
     .detail-tag {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
@@ -337,70 +351,52 @@
     }
     .detail-title {
       font-family: 'Orbitron', monospace;
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--white);
       margin-bottom: 1.25rem;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
+      line-height: 1.3;
     }
     .detail-body {
-      font-size: 0.93rem;
-      line-height: 1.85;
+      font-size: 0.9rem;
+      line-height: 1.9;
       color: var(--text);
-      max-width: 800px;
     }
     .detail-body strong { color: var(--cyan); font-weight: 600; }
     .detail-body em { color: var(--text-dim); font-style: italic; }
     .detail-body code {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       background: rgba(26,159,255,0.1);
       color: var(--cyan);
       padding: 0.15em 0.45em;
       border-radius: 2px;
     }
 
-    .detail-close {
-      position: absolute; top: 1rem; right: 1.5rem;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: color 0.2s;
+    /* Detail fade-in animation */
+    @keyframes detailFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .detail-close:hover { color: var(--cyan); }
+    .detail-content { animation: detailFadeIn 0.25s ease both; }
 
-    /* ── MINDMAP LEGEND ── */
-    .mm-legend {
-      display: flex; gap: 1.5rem; flex-wrap: wrap;
-      padding: 1rem 1.5rem;
+    /* ── Bottom bar ── */
+    #mm-bar {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.75rem 1.5rem;
       border-top: 1px solid var(--grid-line);
       background: rgba(8,12,16,0.6);
-    }
-    .mm-legend-item {
-      display: flex; align-items: center; gap: 0.5rem;
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: var(--text-dim);
     }
-    .mm-legend-dot {
-      width: 10px; height: 10px; border: 1px solid;
-    }
-    .mm-legend-dot.t1 { border-color: var(--node-1); background: rgba(0,229,255,0.1); }
-    .mm-legend-dot.t2 { border-color: var(--node-2); background: rgba(26,159,255,0.1); }
-    .mm-legend-dot.tl { border-color: var(--node-3); background: rgba(155,109,255,0.1); }
-
-    /* ── HINT ── */
-    .mm-hint {
-      position: absolute; bottom: 1rem; right: 1.5rem;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
-      color: var(--text-dim);
-      pointer-events: none;
-    }
+    .mm-bar-item { display: flex; align-items: center; gap: 0.5rem; }
+    .mm-bar-dot { width: 8px; height: 8px; border: 1px solid; flex-shrink: 0; }
+    .mm-bar-dot.t1 { border-color: var(--node-1); background: rgba(0,229,255,0.15); }
+    .mm-bar-dot.tl { border-color: var(--node-3); background: rgba(155,109,255,0.15); }
+    #mm-breadcrumb { margin-left: auto; color: var(--blue-dim); }
 
     /* ── SCAN LINE ── */
     body::after {
@@ -421,7 +417,9 @@
     @media (max-width: 768px) {
       nav { padding: 0 1.5rem; }
       .article-header, .content-wrap { padding-left: 1.5rem; padding-right: 1.5rem; }
-      .mindmap-canvas { min-height: 900px; }
+      #mm-shell { grid-template-columns: 1fr; }
+      #mm-left { border-right: none; border-bottom: 1px solid var(--grid-line); max-height: 320px; }
+      #mm-right { padding: 1.5rem; min-height: 300px; }
     }
   </style>
 </head>
@@ -462,403 +460,214 @@
     <h2>Listen First</h2>
     <div class="spotify-embed" style="flex-direction:column; gap:1rem;">
       <div style="font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:0.12em; color:var(--text-dim); text-transform:uppercase;">Episode 1 — The Concept</div>
-      <iframe src="https://open.spotify.com/embed/episode/0ZqTFJGghXtGA4UO8D7TJx"
+      <iframe src="https://open.spotify.com/embed/episode/6xu8DMGeQ4zsRnYXGMl3BY"
               width="100%" height="152" frameborder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
       </iframe>
       <div style="font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:0.12em; color:var(--text-dim); text-transform:uppercase; margin-top:0.5rem;">Episode 2 — Technical Deep Dive</div>
-      <iframe src="https://open.spotify.com/embed/episode/YOUR_EPISODE_2_ID"
+      <iframe src="https://open.spotify.com/embed/episode/0ZqTFJGghXtGA4UO8D7TJx"
               width="100%" height="152" frameborder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
       </iframe>
     </div>
   </div>
 
-  <!-- MINDMAP -->
+  <!-- KNOWLEDGE EXPLORER -->
   <div class="section-divider">Interactive Deep Dive</div>
   <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1.25rem;font-family:'Share Tech Mono',monospace;letter-spacing:0.05em;">
-    Click any node to expand. Click a leaf node to read the full detail below the map.
+    Expand any section on the left. Click a topic to read the full detail on the right.
   </p>
 
-  <div id="mindmap-root">
-    <div class="mindmap-canvas" id="mm-canvas">
-      <svg id="mm-svg"></svg>
-      <div class="mm-center" id="mm-center">KALMAN FILTER</div>
-      <!-- nodes injected by JS -->
+  <div id="mm-shell">
+    <!-- LEFT: structured topic list -->
+    <div id="mm-left">
+      <div class="mm-root-label">Kalman Filter</div>
+      <!-- sections injected by JS -->
     </div>
 
-    <div class="mm-legend">
-      <div class="mm-legend-item"><div class="mm-legend-dot t1"></div> Main topic</div>
-      <div class="mm-legend-item"><div class="mm-legend-dot t2"></div> Sub-topic</div>
-      <div class="mm-legend-item"><div class="mm-legend-dot tl"></div> Detail node — click to read</div>
+    <!-- RIGHT: detail reader -->
+    <div id="mm-right">
+      <div id="mm-detail-area">
+        <div class="mm-placeholder">
+          <div class="mm-placeholder-icon">→</div>
+          <p>Select a topic<br>to read the detail</p>
+        </div>
+      </div>
     </div>
-
-    <div class="mm-hint">[ click nodes to expand ]</div>
   </div>
 
-  <!-- DETAIL PANEL -->
-  <div id="detail-panel">
-    <div class="detail-close" id="detail-close">[ close × ]</div>
-    <div class="detail-tag" id="detail-tag"></div>
-    <div class="detail-title" id="detail-title"></div>
-    <div class="detail-body" id="detail-body"></div>
+  <div id="mm-bar">
+    <div class="mm-bar-item"><div class="mm-bar-dot t1"></div> Section</div>
+    <div class="mm-bar-item"><div class="mm-bar-dot tl"></div> Detail topic</div>
+    <span id="mm-breadcrumb"></span>
   </div>
 
 </div><!-- /content-wrap -->
 
 <script>
 /* ═══════════════════════════════════════════════
-   MINDMAP DATA
-   Replace / extend this object with your real
-   NotebookLM mindmap content.
+   KNOWLEDGE MAP DATA  —  edit this to update content
 ═══════════════════════════════════════════════ */
-const MAP = {
-  label: "KALMAN FILTER",
-  children: [
-    {
-      id: "t1-why",
-      label: "Why It Exists",
-      children: [
-        {
-          id: "t2-sensor-noise",
-          label: "Sensor Noise",
-          children: [
-            { id: "l-imu-drift", label: "IMU Drift", detail: { tag: "// Sensor Physics", title: "IMU Drift & Bias", body: `Every MEMS accelerometer and gyroscope has a <strong>bias</strong> — a constant offset from truth — and <strong>noise</strong> — random fluctuation around that bias. In Ardupilot, the gyroscope bias is <strong>estimated continuously</strong> as part of the EKF state vector. The EKF3 tracks 24 states, of which 3 are gyro bias (one per axis).<br><br>If you integrate noisy gyro data without correction, your attitude estimate drifts within seconds. A drone relying solely on gyros would be uncontrollable in minutes. The Kalman filter absorbs this drift by <em>trusting GPS and barometer measurements</em> to correct the integrated IMU prediction at each update step.<br><br>This is why Ardupilot's pre-arm checks include <code>EKF_STATUS_FLAGS</code> — if the EKF hasn't converged to low variance on bias estimates, it refuses to arm.` } },
-            { id: "l-gps-jump", label: "GPS Jumps", detail: { tag: "// GPS Characteristics", title: "GPS Position Jumps & Multipath", body: `GPS provides absolute position but with two key problems: <strong>latency</strong> (typically 100–200ms from measurement to Ardupilot reception) and <strong>multipath error</strong> — signals bouncing off buildings or terrain arriving out of phase, causing sudden apparent position jumps of several meters.<br><br>The Kalman filter handles this by using GPS as a <em>measurement update</em>, not as direct truth. If a GPS measurement is far from the predicted position, the filter weights it less (scaled by the innovation variance). Ardupilot's EKF3 includes <code>GPS_CHECK</code> parameters that reject GPS fixes with poor accuracy or high variance before they can corrupt the state estimate.<br><br>This is also why flying near tall structures in Ardupilot often triggers EKF warnings — multipath spikes the innovation beyond the filter's acceptance threshold.` } },
-            { id: "l-baro-pressure", label: "Baro Pressure Disturbance", detail: { tag: "// Barometer", title: "Barometric Altitude Disturbance", body: `Barometers measure air pressure, then infer altitude. Two problems make this noisy: <strong>prop wash</strong> (the airframe's own rotors push air over the baro, creating false pressure readings) and <strong>temperature variation</strong> (the sensor's pressure-to-altitude conversion assumes a standard atmosphere).<br><br>Ardupilot addresses prop wash by encouraging users to mount baro sensors in foam-lined, isolated enclosures. On the filtering side, the EKF assigns <code>baro innovation gates</code> — if a baro measurement is more than N sigma from the predicted altitude, it's rejected for that timestep rather than corrupting the height estimate.<br><br>The EKF fuses baro altitude with GPS altitude (when available) and the vertical IMU integration, weighting each by its current noise estimate.` } }
-          ]
-        },
-        {
-          id: "t2-sensor-lag",
-          label: "Sensor Lag & Fusion",
-          children: [
-            { id: "l-imu-rate", label: "IMU Update Rate", detail: { tag: "// Timing", title: "IMU Rate vs Sensor Fusion Rate", body: `Ardupilot's EKF runs its <strong>prediction step</strong> at the IMU rate — typically 400Hz on F4/H7 flight controllers. This keeps the predicted state fresh between slower sensor updates. GPS arrives at 5–18Hz, compass at 10–50Hz, barometer at 10–25Hz.<br><br>Each fast IMU sample runs the <em>state propagation equations</em>: integrating acceleration to get velocity, integrating velocity to get position, integrating gyro rate to get attitude. Each slower sensor triggers a <em>measurement update</em> that corrects the prediction.<br><br>The mismatch in rates is why Ardupilot buffers observations with timestamps — the EKF3 supports <code>delayed observations</code>, rewinding the state history to apply a late GPS fix at the correct point in time, then re-propagating forward.` } },
-            { id: "l-data-delay", label: "Delayed Observations", detail: { tag: "// EKF Architecture", title: "Handling Delayed Sensor Data", body: `GPS, optical flow, and external vision systems all have significant and <em>variable</em> delays between the physical event and the data arriving in Ardupilot. EKF3 maintains a <strong>ring buffer of past states</strong> — default 300ms depth — so it can retroactively apply delayed observations.<br><br>When a GPS packet arrives, EKF3 looks up the state at the GPS timestamp, runs the measurement update at that past point, then re-runs the prediction steps forward to the present. This avoids the position "jumps" that would occur if delayed data were naively applied to the current state.<br><br>The buffer depth is configurable via <code>EK3_LOG_MASK</code> and related params. If sensor delay exceeds the buffer, Ardupilot discards the measurement — this shows up in DataFlash logs as innovation spikes followed by EKF health degradation.` } }
-          ]
-        }
-      ]
-    },
-    {
-      id: "t1-math",
-      label: "The Mathematics",
-      children: [
-        {
-          id: "t2-predict",
-          label: "Predict Step",
-          children: [
-            { id: "l-state-vector", label: "State Vector", detail: { tag: "// EKF3 Internals", title: "What Ardupilot's EKF3 Estimates", body: `EKF3 tracks a <strong>24-element state vector</strong>. The states are: position (North, East, Down — 3), velocity (NED — 3), attitude as a quaternion (4), gyro bias (3), accelerometer bias (3), earth magnetic field (3), body magnetic field (3), and wind velocity (2).<br><br>Each of these is simultaneously estimated <em>along with its uncertainty</em> (the covariance matrix P). The art of EKF design is choosing which states to include: too few and you can't model reality; too many and the matrix math becomes computationally prohibitive at 400Hz on a microcontroller.<br><br>Ardupilot's choice of 24 states is the result of years of iteration. Early versions of APM used a simpler DCM (Direction Cosine Matrix) approach; the EKF was introduced to better handle high-vibration environments and provide formal uncertainty estimates that the autopilot can act on.` } },
-            { id: "l-process-noise", label: "Process Noise Q", detail: { tag: "// Filter Tuning", title: "Process Noise — How Much Does the Model Trust Itself?", body: `The process noise matrix <strong>Q</strong> encodes how much the filter expects the real world to deviate from its mathematical model between timesteps. High Q = "I don't trust my model, weight measurements heavily." Low Q = "My model is accurate, smooth out noisy measurements."<br><br>In Ardupilot's EKF3, process noise parameters are user-tunable: <code>EK3_GYRO_P_NSE</code>, <code>EK3_ACC_P_NSE</code>, <code>EK3_GBIAS_P_NSE</code> etc. Increasing gyro process noise makes the EKF respond faster to rapid maneuvers but also more sensitive to vibration. Decreasing it gives a smoother but more sluggish response.<br><br>This is why vibration isolation matters: high vibration forces you to raise process noise (which the EKF sees as a less trustworthy model), reducing its ability to reject noisy GPS.` } }
-          ]
-        },
-        {
-          id: "t2-update",
-          label: "Update Step",
-          children: [
-            { id: "l-kalman-gain", label: "Kalman Gain K", detail: { tag: "// Core Equation", title: "The Kalman Gain — Blending Prediction with Measurement", body: `The Kalman Gain <strong>K</strong> is the heart of the filter. It's computed each update step as:<br><br><code>K = P·Hᵀ · (H·P·Hᵀ + R)⁻¹</code><br><br>where P is the current state covariance, H is the observation model (how a measurement relates to the state), and R is the measurement noise. K scales how much to trust the new measurement versus the prediction.<br><br>If measurement noise R is large, K becomes small — the filter mostly sticks with its prediction. If process uncertainty P is large (model has been propagating a long time without updates, like during a GPS outage), K grows — incoming measurements are weighted more heavily.<br><br>This automatic gain adjustment is what makes the Kalman filter elegant: it's <em>optimal</em> for linear systems under Gaussian noise assumptions.` } },
-            { id: "l-innovation", label: "Innovation & Gates", detail: { tag: "// Fault Detection", title: "Innovation Checking — Rejecting Bad Measurements", body: `The <strong>innovation</strong> is the difference between a raw measurement and what the EKF predicted that measurement should be: <code>y = z - H·x̂</code>.<br><br>If the innovation is small, sensor and model agree — update normally. If the innovation is large (beyond an "innovation gate" threshold, typically 5σ), the measurement is likely faulty — multipath GPS, magnetically disturbed compass, or a baro spike — and Ardupilot rejects it for that cycle.<br><br>EKF3 logs innovation data in DataFlash under the <code>XKF1-XKF6</code> messages. When diagnosing erratic flight or EKF errors, checking innovation spikes is the first step — a sustained large innovation in one sensor usually points directly to its failure mode.` } }
-          ]
-        },
-        {
-          id: "t2-ekf",
-          label: "Why Extended (EKF)?",
-          children: [
-            { id: "l-linearise", label: "Linearisation", detail: { tag: "// Nonlinearity", title: "Why Standard Kalman Isn't Enough — Linearising Rotation", body: `The standard Kalman filter assumes the system is <strong>linear</strong>. But rotation in 3D is inherently nonlinear — you can't simply add angle vectors together the way you'd add positions. Gimbal lock, rotation order dependency, and the wrap-around of 360° all violate linearity assumptions.<br><br>The <strong>Extended Kalman Filter</strong> handles this by linearising the nonlinear functions at each timestep using their <em>Jacobian matrices</em> — first-order Taylor series approximations of how the output changes with respect to small changes in state.<br><br>For attitude, Ardupilot uses a <strong>quaternion</strong> representation (4 components, no gimbal lock) and computes the Jacobian of the quaternion propagation equations analytically. The linearised approximation is good enough as long as individual timesteps are short — which is why running the EKF at 400Hz is important for aerobatic platforms.` } },
-            { id: "l-vs-ukf", label: "EKF vs UKF", detail: { tag: "// Algorithm Comparison", title: "Why EKF3 and Not UKF or Particle Filter?", body: `The <strong>Unscented Kalman Filter (UKF)</strong> handles nonlinearity better than EKF — it propagates a set of "sigma points" through the nonlinear function rather than linearising. Better accuracy, but roughly <em>3× the computational cost</em>.<br><br>Particle filters are even more accurate for highly nonlinear systems but require thousands of samples and are computationally impractical on embedded processors.<br><br>Ardupilot chose EKF because it runs on STM32 F4/H7 microcontrollers at 400Hz with headroom to spare. The linearisation error is acceptable because the timesteps are short and the system dynamics aren't extremely nonlinear at normal flight conditions.<br><br>That said, Ardupilot supports running <strong>multiple EKF3 instances in parallel</strong> (controlled by <code>EK3_IMU_MASK</code>), voting between them for fault tolerance — something that would be computationally impossible with UKF on current hardware.` } }
-          ]
-        }
-      ]
-    },
-    {
-      id: "t1-sensors",
-      label: "Sensor Inputs",
-      children: [
-        {
-          id: "t2-imu-input",
-          label: "IMU",
-          children: [
-            { id: "l-accel", label: "Accelerometer", detail: { tag: "// Primary Input", title: "Accelerometer — High-Rate Position Propagation", body: `The accelerometer is sampled at <strong>1–8 kHz</strong> internally, downsampled and filtered before reaching the EKF at ~400Hz. It provides the <em>specific force</em> — the sum of gravity and vehicle acceleration — from which Ardupilot subtracts the current gravity estimate (from the attitude estimate) to get vehicle acceleration in the navigation frame.<br><br>Double-integrating acceleration gives position — but errors compound quadratically with time. A 0.1 m/s² accelerometer bias produces <em>5m position error per 10 seconds</em> without GPS correction.<br><br>This is why Ardupilot's vibration logging (<code>VIBE</code> DataFlash message) matters: accelerometer clipping from excess vibration creates large, sudden spikes that the EKF cannot distinguish from real acceleration events. Well-mounted props and balanced motors are a direct prerequisite for a healthy EKF.` } },
-            { id: "l-gyro", label: "Gyroscope", detail: { tag: "// Attitude Rate", title: "Gyroscope — The High-Frequency Attitude Truth", body: `The gyroscope measures <strong>angular rate</strong> (rad/s) in the body frame. Ardupilot integrates this at the full EKF rate to propagate the attitude quaternion forward between slower absolute-attitude corrections (from magnetometer, GPS velocity direction, or external vision).<br><br>EKF3 simultaneously estimates the <strong>gyro bias</strong> — the constant offset each axis reads even when stationary. This is why you'll see attitude estimates drift momentarily if you power up and immediately fly, before the EKF has converged on bias: <code>EK3_CHECK_SCALE</code> ensures this convergence happens before arming.<br><br>Ardupilot also applies a notch filter (<code>INS_HNTCH_*</code> params) to the gyro signal before EKF input, removing motor-frequency vibrations. This significantly reduces the process noise the EKF has to absorb.` } }
-          ]
-        },
-        {
-          id: "t2-gps-input",
-          label: "GPS / GNSS",
-          children: [
-            { id: "l-gps-pos", label: "Position Fix", detail: { tag: "// Absolute Reference", title: "GPS Position — The Absolute Anchor", body: `GPS provides <strong>absolute position</strong> (latitude, longitude, altitude) typically at 5–18Hz in Ardupilot setups. This is the primary mechanism by which cumulative IMU drift is corrected over timescales of seconds.<br><br>The EKF converts GPS WGS84 coordinates to a local North-East-Down frame centered on the home position. This NED frame is where all state estimation happens.<br><br>GPS horizontal accuracy is typically 1–3m CEP with a good sky view; vertical accuracy is ~2× worse. RTK GPS modules (like the Here3 or F9P) can achieve centimetre accuracy by differencing with a ground reference, and Ardupilot supports RTK natively — the EKF simply sees lower <code>GPS_ACCURACY</code> values and trusts the position measurement more (lower R in the update step).` } },
-            { id: "l-gps-vel", label: "Velocity Fix", detail: { tag: "// Velocity Update", title: "GPS Velocity — Often More Accurate Than Position", body: `GPS receivers report <strong>velocity</strong> derived from the Doppler shift of the satellite signals — a completely separate measurement from position. GPS velocity at 1–5m/s horizontal accuracy is typically <em>more reliable than position</em> during multipath conditions because Doppler is harder to spoof with reflections.<br><br>Ardupilot's EKF uses GPS velocity as a separate measurement update. Even when GPS position is degraded (e.g., near buildings), velocity can still be trusted to constrain the IMU integration, preventing velocity drift.<br><br>This is why Ardupilot's GPS Glitch detection (<code>GPS_GLITCH_RADIUS</code>) looks at the <em>consistency between GPS velocity and the integrated IMU velocity</em> — a multipath position jump won't be accompanied by a corresponding velocity jump, exposing it as a glitch.` } }
-          ]
-        },
-        {
-          id: "t2-mag-baro",
-          label: "Compass & Baro",
-          children: [
-            { id: "l-compass", label: "Magnetometer", detail: { tag: "// Yaw Reference", title: "Magnetometer — The Yaw Anchor (and Its Problems)", body: `The magnetometer provides an <strong>absolute yaw reference</strong> — the only onboard sensor that can do so without GPS. The EKF uses it to prevent yaw drift, which is especially critical during initial flight before GPS velocity has established a heading estimate.<br><br>The problem: magnetometers measure the <em>total magnetic field</em>, including interference from the vehicle's own motors, ESCs, and power cables. Ardupilot has a compass calibration procedure that fits an ellipsoid to measured data, estimating hard-iron and soft-iron corrections.<br><br>EKF3 can estimate an additional <strong>in-flight compass bias</strong> (body magnetic field states) to handle residual interference that varies with motor current. Heavy current draw under load can shift the local field by several degrees — without this in-flight correction, yaw errors at high throttle are common. Log <code>XKF4.MF</code> to see if in-flight calibration is actively correcting.` } },
-            { id: "l-baro-detail", label: "Barometer", detail: { tag: "// Altitude Hold", title: "Barometer — Altitude When GPS Fails", body: `The barometer measures <strong>static air pressure</strong> and converts it to a relative altitude estimate. It's the primary altitude sensor in GPS-degraded environments and the backstop for vertical position when GPS altitude is noisy.<br><br>Ardupilot applies a <strong>ground effect compensation</strong> when near the surface — the pressure disturbance from rotor downwash at low altitude causes apparent altitude gain, which would otherwise trigger a climb correction that pushes the vehicle higher, creating a feedback loop.<br><br>In EKF3, baro is fused with GPS altitude and the IMU vertical integration. The relative weighting is automatic based on estimated noise, but can be biased via <code>EK3_HRT_FILT</code> — raising this increases the baro contribution to height at the cost of susceptibility to prop-wash disturbance.` } }
-          ]
-        }
-      ]
-    },
-    {
-      id: "t1-ardupilot",
-      label: "Ardupilot EKF3",
-      children: [
-        {
-          id: "t2-multi-ekf",
-          label: "Multiple Instances",
-          children: [
-            { id: "l-lane-switch", label: "Lane Switching", detail: { tag: "// Fault Tolerance", title: "EKF Lane Switching — Automatic Fault Recovery", body: `Ardupilot can run <strong>up to 3 EKF3 instances simultaneously</strong>, each using a different IMU (if multiple IMUs are present). This is configured with <code>EK3_IMU_MASK</code>.<br><br>Each instance maintains its own state vector, covariance matrix, and innovation tracking. A <strong>health scoring</strong> system monitors innovation magnitudes across all lanes; if one lane's innovations spike (indicating the IMU it's using has failed or is vibrating badly), Ardupilot automatically switches to the healthiest lane mid-flight.<br><br>The switch is designed to be seamless — because all lanes are propagating the same sensor fusion with the same observation data (just different primary IMUs), their state estimates are similar enough that a lane switch doesn't cause a step change in the autopilot's perception of its position.` } },
-            { id: "l-log-analysis", label: "Log Analysis", detail: { tag: "// Debugging", title: "Reading EKF Health from DataFlash Logs", body: `EKF3 writes detailed logs to the SD card under several message types. The key ones to check after a flight:<br><br><code>XKF1</code> — Primary state estimates (position, velocity, attitude) from EKF lane 1<br><code>XKF2</code> — Wind and magnetic field estimates<br><code>XKF4</code> — Innovation and covariance data<br><code>XKFS</code> — EKF selection/lane switching events<br><br>When diagnosing a crash or erratic behavior, plot <strong>XKF4.IVN</strong> (velocity innovation) and <strong>XKF4.IP</strong> (position innovation) against time. Large sustained spikes indicate the EKF was fighting a bad sensor. Compare with <code>GPS.Spd</code> and <code>BARO.Alt</code> to identify which sensor caused it.<br><br>Mission Planner's Review a Log function visualises these directly. MAVExplorer (Python-based) allows scripting custom innovation analyses for fleet-scale log processing.` } }
-          ]
-        },
-        {
-          id: "t2-tuning",
-          label: "Key Parameters",
-          children: [
-            { id: "l-params", label: "EK3 Params", detail: { tag: "// Configuration", title: "Critical EKF3 Parameters Every Builder Should Know", body: `<strong>EK3_ENABLE</strong> — Must be 1. EKF3 replaced EKF2 as default.<br><br><strong>EK3_IMU_MASK</strong> — Bitmask selecting which IMUs to use for EKF lanes. Default 3 (lane 0 + lane 1).<br><br><strong>EK3_GPS_TYPE</strong> — 0=use both pos+vel, 1=pos only, 3=no GPS (optical flow/visual). Critical for GPS-denied setups.<br><br><strong>EK3_GYRO_P_NSE / EK3_ACC_P_NSE</strong> — Process noise for gyro and accelerometer. Increase if flying in high-vibration environments. Decrease for gliders or very stable platforms.<br><br><strong>EK3_ABIAS_P_NSE</strong> — Accel bias process noise. Higher values let the filter adapt faster to changing accelerometer bias (e.g., in thermal environments) but at the cost of more susceptibility to noise.<br><br><strong>EK3_CHECK_SCALE</strong> — Innovation consistency check threshold. The default (100) works for most setups. Reduce if you want stricter pre-arm EKF quality requirements.` } },
-            { id: "l-preflight", label: "Pre-arm Checks", detail: { tag: "// Safety System", title: "EKF Pre-arm Checks — What They're Actually Checking", body: `Ardupilot refuses to arm if EKF health is insufficient. The pre-arm checks evaluate:<br><br><strong>Variance convergence</strong> — Has the EKF had enough time (and sensor data) to drive its state covariances below threshold? This typically requires 30–60 seconds on the ground with good GPS signal.<br><br><strong>Innovation consistency</strong> — Are sensor measurements consistent with the predicted state? A healthy EKF should have small, normally-distributed innovations. Large innovations suggest a miscalibrated sensor or interference.<br><br><strong>Compass vs GPS heading</strong> — Does the compass heading agree with the GPS ground track (once moving)? A large disagreement triggers a compass inconsistency warning.<br><br>The pre-arm failure message <em>"EKF not healthy"</em> combined with <code>GCS_FAILSAFE</code> log entries is almost always one of: insufficient GPS satellites, undiscovered magnetic interference, or excessive vibration pushing innovations out of bounds.` } }
-          ]
-        }
-      ]
-    }
-  ]
-};
+const MAP = [
+  {
+    id: "s1",
+    label: "Estimator Generations",
+    items: [
+      { id: "s1-1", label: "EKF2", tag: "// Legacy", title: "EKF2 — 24-State Dual-IMU Filter", body: `EKF2 was Ardupilot's first production Extended Kalman Filter, introduced to replace the older DCM system. It tracks a <strong>24-state vector</strong> covering position, velocity, attitude (quaternion), gyro bias, accelerometer bias, earth magnetic field, body magnetic field, and wind velocity.<br><br>EKF2 introduced <strong>dual-IMU support</strong> — running two parallel filter instances on different IMU hardware, then selecting the healthiest. This was a major reliability improvement for craft with redundant IMU setups.<br><br>EKF2 is still present in Ardupilot as a fallback and is selectable via <code>AHRS_EKF_TYPE=2</code>, but EKF3 is now the default. Most users have no reason to revert to EKF2 unless debugging a specific compatibility issue with older hardware.` },
+      { id: "s1-2", label: "EKF3", tag: "// Current Default", title: "EKF3 — Enhanced Sensor Support & Multi-Core", body: `EKF3 is the current default estimator in Ardupilot, enabled by setting <code>EK3_ENABLE=1</code> and selected via <code>AHRS_EKF_TYPE=3</code>. It builds on EKF2 with several key advances:<br><br><strong>Expanded sensor support</strong> — EKF3 natively handles optical flow, rangefinders, external vision systems (beacons, T265), and body-frame odometry in addition to the classic GPS/IMU/baro/compass stack.<br><br><strong>Multiple cores (lanes)</strong> — up to 3 EKF3 instances can run simultaneously on different IMUs, controlled by <code>EK3_IMU_MASK</code>. A health-scoring system picks the best lane and can switch mid-flight without a step change in state.<br><br><strong>Gaussian Sum Filter (GSF)</strong> — an independent yaw estimator that operates in parallel, providing yaw recovery when compass and GPS both fail.<br><br><strong>Dynamic source selection</strong> — the <code>EK3_SRCn_y</code> parameter family lets operators define primary/secondary/tertiary position, velocity, and yaw sources that switch automatically based on availability.` },
+      { id: "s1-3", label: "DCM", tag: "// Fallback", title: "DCM — Direction Cosine Matrix Legacy Fallback", body: `The Direction Cosine Matrix algorithm predates EKF in Ardupilot and is still present as a <strong>last-resort fallback</strong>. DCM represents attitude as a 3×3 rotation matrix that is updated by integrating gyro data and corrected by accelerometer and GPS measurements.<br><br>DCM is computationally lighter than EKF but provides <em>no formal uncertainty estimates</em> — it cannot tell the autopilot how confident it is in its attitude, which makes sensor fault detection much harder.<br><br>Ardupilot automatically falls back to DCM when an <strong>EKF failsafe</strong> triggers (the EKF health checks fail and the filter is considered unreliable). This is configured via <code>EK3_ERR_THRESH</code> and logged as an EKF failsafe event. Flying in DCM fallback is considered a degraded mode — land as soon as possible.` }
+    ]
+  },
+  {
+    id: "s2",
+    label: "Core Estimation States",
+    items: [
+      { id: "s2-1", label: "Attitude (Quaternions)", tag: "// Orientation", title: "Attitude Estimation via Quaternions", body: `Ardupilot represents attitude as a <strong>unit quaternion</strong> — a 4-component vector (w, x, y, z) that encodes rotation without the gimbal lock problem of Euler angles. The EKF propagates the quaternion forward at the IMU rate by integrating gyro measurements.<br><br>The quaternion is corrected by <em>absolute attitude references</em>: magnetometer (for yaw), accelerometer (for pitch/roll when nearly stationary), and GPS velocity direction (for yaw when moving). Each correction is a weighted blend via the Kalman gain.<br><br>Internally, EKF3 works with a <strong>small-angle error state</strong> representation rather than the full quaternion — this keeps the linearisation valid and numerically stable even at high angular rates.` },
+      { id: "s2-2", label: "Velocity (North, East, Down)", tag: "// NED Frame", title: "Velocity Estimation in NED Frame", body: `Velocity is estimated in the <strong>North-East-Down (NED) frame</strong> — a locally flat coordinate system centred on the home position. Three states (Vn, Ve, Vd) track velocity in each axis.<br><br>Velocity is propagated by integrating IMU acceleration (after subtracting the gravity vector derived from the current attitude estimate). GPS velocity — derived from Doppler shift — provides the primary correction at 5–18Hz. Optical flow and body-frame odometry can substitute when GPS is unavailable.<br><br>Velocity errors compound into position errors linearly with time. A 0.1 m/s² accelerometer bias causes a velocity drift of 0.1 m/s every second, which then accumulates into growing position error.` },
+      { id: "s2-3", label: "Position (North, East, Down)", tag: "// NED Frame", title: "Position Estimation in NED Frame", body: `Position is the integral of velocity in NED coordinates — three states (Pn, Pe, Pd) anchored to the home position set at arming. GPS absolute position is converted from WGS84 lat/lon/alt to NED and used as the primary position correction.<br><br>Position errors grow <em>quadratically</em> with time during GPS outages (because velocity errors themselves grow linearly). This is why Ardupilot's GPS-denied modes (optical flow, rangefinder) place tight limits on allowed flight area and duration before requiring a GPS fix to re-anchor the estimate.<br><br>Vertical position (Down) is additionally corrected by barometric altitude, providing redundancy for the GPS altitude channel which is typically 2× less accurate than horizontal.` },
+      { id: "s2-4", label: "Gyro Bias & Scale Factors", tag: "// IMU Calibration", title: "In-Flight Gyro Bias and Scale Estimation", body: `Every MEMS gyroscope has a <strong>bias</strong> (constant offset) and <strong>scale factor error</strong> (gain error). EKF3 estimates both in real time as part of the state vector — 3 bias states (one per axis) plus 3 scale factor states.<br><br>Bias is the more critical one: even a small uncompensated bias integrates into a growing attitude error. EKF3 continuously refines the bias estimate whenever absolute attitude references (GPS, magnetometer) provide corrections — the discrepancy between prediction and measurement drives the bias estimate toward truth.<br><br>Scale factor errors become significant at high angular rates (aerobatics, racing). <code>EK3_GBIAS_P_NSE</code> controls how quickly the filter allows the bias estimate to change — too high and it chases vibration noise; too low and it can't track a genuinely drifting bias.` },
+      { id: "s2-5", label: "Magnetic Fields (Earth & Body)", tag: "// Magnetometer", title: "Earth and Body Magnetic Field States", body: `EKF3 tracks two sets of magnetic field states: <strong>earth field</strong> (3 states — the ambient geomagnetic field in NED) and <strong>body field</strong> (3 states — magnetic interference generated by the vehicle itself).<br><br>The earth field states allow the EKF to refine the expected compass reading as the vehicle moves through areas with local magnetic variation — important for long-distance flights.<br><br>The body field states capture the <em>current-dependent magnetic interference</em> from motors and ESCs. At high throttle, motor currents create fields that shift the effective compass reading by several degrees. By estimating these in-flight, EKF3 can correct for them dynamically — a major improvement over the static compass calibration alone. Log <code>XKF2.MFN/MFE/MFD</code> to see the earth field estimate and <code>XKF2.MBX/MBY/MBZ</code> for the body field.` },
+      { id: "s2-6", label: "Wind Velocity", tag: "// Airspeed", title: "Wind Velocity Estimation", body: `EKF3 includes two wind velocity states (North and East components of wind). These are estimated from the difference between GPS velocity (ground speed) and IMU-integrated velocity corrected for attitude — essentially what the air is doing relative to the earth.<br><br>Accurate wind estimation enables better <strong>airspeed estimation without a dedicated airspeed sensor</strong> — Ardupilot can compute expected airspeed from GPS groundspeed and wind estimate, which is used for fixed-wing stall protection and efficient navigation.<br><br>Wind estimation requires the vehicle to be moving relative to the air — it cannot converge during stationary hover. For multirotor use, wind states are less critical but still improve yaw heading estimation during GPS velocity corrections.` }
+    ]
+  },
+  {
+    id: "s3",
+    label: "Sensor Fusion Inputs",
+    items: [
+      { id: "s3-1", label: "Inertial Measurement Unit (IMU)", tag: "// Primary Input", title: "IMU — The High-Rate Prediction Engine", body: `The IMU (accelerometer + gyroscope) is the backbone of EKF3. It drives the <strong>prediction step</strong> at 400Hz on F4/H7 flight controllers — far faster than any other sensor. Every IMU sample propagates the state forward: integrating gyro rate to update attitude, rotating and integrating acceleration to update velocity and position.<br><br>Ardupilot applies a <strong>harmonic notch filter</strong> (<code>INS_HNTCH_*</code>) to the gyro signal before it reaches EKF3, removing motor-frequency vibrations. This dramatically reduces the process noise the filter must absorb.<br><br>IMU data is timestamped precisely. EKF3 maintains a ring buffer of past IMU samples so it can replay them when delayed observations (GPS, optical flow) arrive and need to be fused at their correct point in time.` },
+      { id: "s3-2", label: "Global Positioning System (GPS)", tag: "// Absolute Reference", title: "GPS — Position and Velocity Anchor", body: `GPS provides <strong>absolute position</strong> (WGS84 → NED) and <strong>Doppler velocity</strong> at 5–18Hz. These are two separate measurement updates in EKF3 — position and velocity are fused independently, allowing velocity to still be trusted even during multipath position errors.<br><br>EKF3 includes GPS consistency checks: <code>EK3_POS_GATE</code> sets the innovation gate in meters — GPS fixes that deviate more than this from the predicted position are rejected. This prevents multipath spikes near buildings from corrupting the state.<br><br>RTK-capable receivers (u-blox F9P, Here3+) report centimetre-level accuracy. EKF3 reads the reported accuracy figure and scales the measurement noise R accordingly — better GPS is automatically trusted more.` },
+      { id: "s3-3", label: "Compass (Magnetometer)", tag: "// Yaw Reference", title: "Compass — Absolute Yaw Without GPS", body: `The magnetometer is the only onboard sensor that provides <strong>absolute yaw</strong> without GPS. EKF3 uses it to anchor the heading estimate, especially during the first seconds of flight before GPS velocity has established a heading solution.<br><br>Interference from motors and power electronics is the main problem. Ardupilot's pre-flight calibration corrects static hard-iron and soft-iron distortion; EKF3's body-field states correct the remaining current-dependent interference in flight.<br><br>If compass data is unreliable (high magnetic interference environment), EKF3 can run without it using <code>EK3_SRC1_YAW=2</code> (GPS velocity yaw) or <code>=8</code> (GSF yaw). The GSF in particular provides a compass-free yaw estimate that has dramatically improved GPS-only operation.` },
+      { id: "s3-4", label: "Barometric Pressure", tag: "// Altitude", title: "Barometer — Altitude Redundancy", body: `The barometer measures static air pressure and infers relative altitude. EKF3 fuses barometric altitude as a vertical position correction, complementing GPS altitude which is typically 2× less accurate than horizontal.<br><br>Prop wash — rotor downwash pressurising the baro — is the main noise source for multirotors. Ardupilot recommends foam-enclosed baro sensors and applies an innovation gate (<code>EK3_BAROALTNE</code>) to reject large sudden spikes.<br><br>Near the ground, Ardupilot applies a ground-effect compensation: downwash increases as altitude decreases, creating a false apparent climb that would otherwise trigger an overcorrection. The EKF's baro noise model is increased at low altitude to reduce the impact of this disturbance.` },
+      { id: "s3-5", label: "Airspeed Sensors", tag: "// Fixed-Wing", title: "Pitot Airspeed — True Airspeed Measurement", body: `Pitot-tube airspeed sensors measure <strong>dynamic pressure</strong>, which EKF3 converts to true airspeed. This is particularly important for fixed-wing aircraft where stall speed determines minimum safe flight speed.<br><br>EKF3 fuses airspeed as an independent measurement that constrains the wind velocity estimate. With both GPS groundspeed and pitot airspeed available, the EKF can solve for wind velocity precisely rather than estimating it from manoeuvre history.<br><br>For multirotor operations, pitot sensors are rarely fitted and EKF3 runs without airspeed fusion. The wind states are still estimated from GPS/IMU discrepancy but with higher uncertainty.` },
+      { id: "s3-6", label: "Optical Flow & Rangefinders", tag: "// GPS-Denied", title: "Optical Flow — Velocity Without GPS", body: `Optical flow sensors measure <strong>image motion</strong> between frames, computing body-relative velocity by combining angular rate (from gyro) with translational flow. Combined with a rangefinder for altitude, this allows position hold without GPS.<br><br>EKF3 fuses optical flow as a body-frame velocity measurement update. The quality gate is set by <code>EK3_FLOW_GATE</code>. Flow accuracy degrades on low-texture surfaces (water, uniform grass) and at high altitudes where pixel motion becomes too small to resolve reliably.<br><br>Rangefinders provide a direct altitude measurement that is far more accurate than barometer at low altitudes. EKF3 fuses rangefinder data when configured as the height source via <code>EK3_SRC1_POSZ=2</code>.` },
+      { id: "s3-7", label: "External Navigation", tag: "// Beacons / Odometry", title: "External Navigation — Beacons, T265, Odometry", body: `EKF3 supports several external navigation inputs for GPS-denied precision positioning:<br><br><strong>UWB Beacons</strong> — ultra-wideband radio beacons provide centimetre-level ranging. Ardupilot computes position from multilateration and fuses it as a position update.<br><br><strong>Intel RealSense T265</strong> — a visual-inertial odometry camera that outputs position and velocity in its own frame, which Ardupilot transforms to NED and fuses via the external vision interface (<code>EK3_SRC1_POSXY=6</code>).<br><br><strong>Wheel odometry</strong> — ground vehicles can fuse wheel encoder velocity as a body-frame velocity constraint, limiting position drift between GPS fixes. Configured via <code>WHEEL_ENCODER_*</code> params.` }
+    ]
+  },
+  {
+    id: "s4",
+    label: "Operational Logic",
+    items: [
+      { id: "s4-1", label: "State Prediction (IMU integration)", tag: "// Predict Step", title: "State Prediction — How the Filter Steps Forward", body: `At every IMU sample (400Hz), EKF3 runs the <strong>prediction step</strong>: it applies the system dynamics model to propagate the current state estimate forward by one timestep.<br><br>For attitude: integrate gyro rate (minus estimated bias) using quaternion kinematics. For velocity: rotate the accelerometer measurement into NED, subtract gravity, integrate. For position: integrate velocity. Bias states are predicted to remain constant (random walk model).<br><br>Simultaneously, the <strong>covariance matrix P</strong> is propagated forward — accounting for how uncertainty grows due to process noise (IMU noise, model imperfections). This growing uncertainty is what "opens up" the Kalman gain, making the filter more receptive to incoming measurements after a long gap.` },
+      { id: "s4-2", label: "Innovation (Sensor vs predicted)", tag: "// Measurement Update", title: "Innovation — The Discrepancy That Drives Correction", body: `The <strong>innovation</strong> is: <code>y = z − H·x̂</code> — the difference between what a sensor actually measured (z) and what the EKF predicted that sensor would measure (H·x̂), given the current state estimate.<br><br>Small innovation → sensor and model agree → small correction. Large innovation → they disagree → larger correction, but also a warning: if the innovation exceeds the <strong>innovation gate</strong> (typically 5σ based on the combined predicted + measurement uncertainty), the measurement is <em>rejected</em> for that cycle rather than applied.<br><br>This is Ardupilot's primary sensor fault detection mechanism. Sustained large innovations in a specific sensor's channel (e.g., always large GPS position innovation) point to a miscalibrated or failing sensor. DataFlash logs capture these in <code>XKF4.IVN</code> (velocity), <code>XKF4.IP</code> (position), etc.` },
+      { id: "s4-3", label: "State Correction (Sensor fusion)", tag: "// Update Step", title: "State Correction — Applying the Kalman Gain", body: `After computing the innovation, EKF3 applies the <strong>Kalman gain K</strong> to correct the state estimate:<br><br><code>x̂_new = x̂ + K · y</code><br><br>The Kalman gain is computed as <code>K = P·Hᵀ·(H·P·Hᵀ + R)⁻¹</code>, where R is the sensor measurement noise. K automatically balances between trusting the prediction (low K when R is small, sensor is trusted) and trusting the measurement (high K when P is large, model uncertainty is high).<br><br>After the state update, the covariance matrix is also updated: <code>P_new = (I − K·H)·P</code> — the uncertainty shrinks because a new measurement has been incorporated. This is what makes the Kalman filter optimal: it's the minimum-variance unbiased estimator for linear Gaussian systems.` },
+      { id: "s4-4", label: "Covariance Matrix (Error growth)", tag: "// Uncertainty Tracking", title: "Covariance Matrix — Tracking How Uncertain the Filter Is", body: `The covariance matrix <strong>P</strong> is a 24×24 symmetric positive-definite matrix that encodes the estimated uncertainty of every state and the correlations between them. It is the most computationally expensive part of EKF3 — the matrix multiply at each IMU step is why 400Hz EKF on a microcontroller is non-trivial.<br><br>Large diagonal entries in P mean high uncertainty for that state. Off-diagonal entries encode correlations — e.g., position and velocity uncertainty are correlated because one integrates into the other.<br><br>P grows during prediction (uncertainty increases when no measurements arrive) and shrinks during measurement updates (new information reduces uncertainty). Monitoring P diagonals gives insight into filter health: P values that stop shrinking despite GPS availability suggest the innovations are being systematically rejected.` },
+      { id: "s4-5", label: "Delayed Time Horizon (Fusion alignment)", tag: "// Ring Buffer", title: "Delayed Observations — Fusing Late-Arriving Data Correctly", body: `GPS, optical flow, and vision systems all have significant pipeline delays — 100–300ms between the physical event and Ardupilot receiving the data. Naively applying this to the current state causes a position "jump" and introduces errors.<br><br>EKF3 solves this with a <strong>ring buffer</strong> of past states (configurable depth, default ~300ms). When a delayed observation arrives, the filter:<br><br>1. Retrieves the state at the observation timestamp from the buffer<br>2. Runs the measurement update at that past time<br>3. Re-propagates the corrected state forward to the present using the buffered IMU data<br><br>This ensures all measurements are fused at the correct point in the vehicle's trajectory history. If an observation is older than the buffer depth, it is discarded — visible in logs as sporadic large innovation spikes.` }
+    ]
+  },
+  {
+    id: "s5",
+    label: "Key Parameters",
+    items: [
+      { id: "s5-1", label: "EK3_ENABLE", tag: "// Activation", title: "EK3_ENABLE — Activating EKF3", body: `<code>EK3_ENABLE = 1</code> activates the EKF3 estimator. This must be set alongside <code>AHRS_EKF_TYPE = 3</code> to make EKF3 the active attitude and position source for the autopilot.<br><br>Setting <code>EK3_ENABLE = 0</code> disables EKF3 entirely — useful when debugging to force DCM fallback, but not recommended for flight. On most modern Ardupilot builds EKF3 is enabled and selected by default; you only need to touch this parameter if you've explicitly disabled it or are comparing estimator behaviour.` },
+      { id: "s5-2", label: "AHRS_EKF_TYPE", tag: "// Estimator Selection", title: "AHRS_EKF_TYPE — Selecting the Active Estimator", body: `<code>AHRS_EKF_TYPE</code> selects which estimator provides the attitude and position solution to the flight controller:<br><br><code>2</code> = EKF2 (legacy)<br><code>3</code> = EKF3 (default, recommended)<br><code>10</code> = External AHRS (e.g. VectorNav, MicroStrain)<br><br>Switching estimators requires a reboot. The parameter does not stop other estimators from running in the background — EKF2 and EKF3 can both be enabled simultaneously, but only the selected type feeds the autopilot.` },
+      { id: "s5-3", label: "EK3_IMU_MASK", tag: "// Multi-Core", title: "EK3_IMU_MASK — Assigning IMUs to EKF Cores", body: `<code>EK3_IMU_MASK</code> is a bitmask controlling which IMUs get their own EKF3 core (lane). Bit 0 = IMU 0, Bit 1 = IMU 1, Bit 2 = IMU 2.<br><br>Default is <code>3</code> (binary 011) = two cores, one on each of the first two IMUs. A Pixhawk with 3 IMUs can run <code>EK3_IMU_MASK = 7</code> for maximum redundancy at the cost of extra CPU load.<br><br>Each core runs independently. The health monitor compares innovations across cores and selects the best-performing one. A core whose IMU starts vibrating badly will show deteriorating innovations and be deprioritised automatically — no pilot intervention needed.` },
+      { id: "s5-4", label: "EK3_SRCn_y", tag: "// Source Selection", title: "EK3_SRCn_y — Dynamic Sensor Source Configuration", body: `The <code>EK3_SRCn_y</code> parameter family (where n = 1/2/3 for primary/secondary/tertiary and y = POSXY/VELXY/POSZ/VELZ/YAW) defines which sensor to use for each measurement type.<br><br>Example: <code>EK3_SRC1_POSXY = 3</code> (GPS primary horizontal position), <code>EK3_SRC2_POSXY = 6</code> (external vision as fallback). Ardupilot switches to the secondary/tertiary source automatically if the primary becomes unavailable or fails its health check.<br><br>This architecture enables seamless GPS→optical flow→beacon transitions without reconfiguring the estimator — the source hierarchy is pre-defined and switching is autonomous.` },
+      { id: "s5-5", label: "EK3_POS_GATE", tag: "// Fault Detection", title: "EK3_POS_GATE — Position Innovation Rejection Threshold", body: `<code>EK3_POS_GATE</code> sets the position innovation gate in metres × 100 (e.g., default 500 = 5.0 metres). GPS position fixes that deviate more than this from the EKF's predicted position are rejected for that cycle rather than applied.<br><br>This is the primary defence against GPS multipath near buildings and GPS glitches. A tighter gate (lower value) makes the filter more conservative — it rejects more measurements, which is safer but can slow convergence after a genuine GPS jump. A looser gate (higher value) accepts noisier GPS but risks incorporating bad fixes.<br><br>Related: <code>EK3_VEL_GATE</code> (velocity innovation gate), <code>EK3_HGT_GATE</code> (height innovation gate), <code>EK3_MAG_GATE</code> (compass innovation gate).` }
+    ]
+  },
+  {
+    id: "s6",
+    label: "Advanced Features",
+    items: [
+      { id: "s6-1", label: "Sensor Affinity", tag: "// Multi-Core", title: "Sensor Affinity — Mapping Sensors to Specific Cores", body: `By default, all EKF3 cores fuse the same sensor data (same GPS, same compass). <strong>Sensor affinity</strong> allows each core to be assigned a dedicated GPS receiver or compass — so Core 0 uses GPS1+Compass1 and Core 1 uses GPS2+Compass2.<br><br>This means a hardware failure in GPS1 doesn't just degrade Core 0 — it doesn't affect Core 1 at all, because Core 1 was never using that GPS. Lane switching then gives Ardupilot a completely independent position source.<br><br>Configured via <code>EK3_GPS_AFFINITY</code> and <code>EK3_MAG_AFFINITY</code> bitmasks. Requires multiple GPS/compass units. This is primarily relevant for professional or safety-critical builds where sensor redundancy is engineered at the hardware level.` },
+      { id: "s6-2", label: "Lane Switching", tag: "// Fault Tolerance", title: "Lane Switching — Automatic Core Selection", body: `EKF3 continuously scores the health of each active core (lane) using a weighted sum of innovation magnitudes across all sensor channels. The core with the lowest innovation score — meaning it best agrees with incoming sensor data — is selected as the active lane.<br><br>When innovations in the active core spike (e.g., its primary IMU develops a vibration fault), the health score deteriorates. If another core maintains lower innovations, Ardupilot switches to it automatically mid-flight.<br><br>The switch is designed to be seamless because all cores share the same observation data (unless sensor affinity is configured). Their state estimates track closely, so a switch causes only a tiny step change — imperceptible to the autopilot. Lane switching events are logged as <code>XKFS</code> messages in DataFlash.` },
+      { id: "s6-3", label: "Gaussian Sum Filter (GSF)", tag: "// Yaw Recovery", title: "GSF — Compass-Free Yaw Estimation", body: `The Gaussian Sum Filter is an independent yaw estimator that runs in parallel with EKF3. It uses <strong>GPS velocity and IMU data only</strong> — no compass — to estimate vehicle heading by looking at which direction the vehicle is actually moving relative to what its attitude suggests.<br><br>GSF maintains a bank of hypotheses (Gaussian components) covering different possible yaw angles, weights them by how well each explains the observed GPS velocity, and selects the most probable heading.<br><br>This provides a yaw solution even when the compass is completely unreliable (near high-voltage power lines, indoors with steel structure, after in-flight compass failure). GSF yaw is selectable as a source via <code>EK3_SRC1_YAW=8</code>. It has dramatically reduced the number of "fly-away" incidents caused by compass interference.` },
+      { id: "s6-4", label: "GPS / Non-GPS Transitions", tag: "// Source Switching", title: "GPS to Non-GPS Transitions", body: `Transitioning between GPS and non-GPS positioning mid-flight (e.g., flying into a building that blocks GPS then back out) is handled by EKF3's source switching mechanism without requiring a mode change or pilot intervention.<br><br>When GPS signal quality drops below threshold, EKF3 automatically switches to the next configured position source (optical flow, external vision, etc.) if one is available and healthy. When GPS recovers, it can switch back.<br><br>The transition is managed carefully to avoid state discontinuities — the filter blends between sources over a short window rather than switching abruptly. Configuration requires pre-defining the source hierarchy in <code>EK3_SRCn_*</code> parameters before flight. Flying into GPS-denied areas without a configured fallback source will trigger a position estimate timeout and likely a failsafe.` },
+      { id: "s6-5", label: "IMU Temperature Calibration", tag: "// Hardware", title: "IMU Temperature Calibration — Compensating Thermal Drift", body: `MEMS IMU sensors have bias that varies significantly with temperature. A cold IMU on first power-up can have very different bias than the same IMU at operating temperature — causing attitude errors during the warm-up period.<br><br>Ardupilot supports <strong>IMU temperature calibration</strong>: a polynomial model mapping temperature (measured by the IMU's internal thermistor) to expected bias offsets. This is built by running a calibration procedure that heats the IMU from cold through operating temperature while logging bias vs. temperature.<br><br>Configured via <code>INS_TCAL*</code> parameters. Some flight controllers (Cube Orange, Pixhawk 6C) include heaters to maintain IMU temperature above ambient, eliminating the warm-up drift problem entirely. Temperature calibration is most important for outdoor fixed-wing operations with long ground exposure before takeoff.` }
+    ]
+  },
+  {
+    id: "s7",
+    label: "Diagnostics & Logging",
+    items: [
+      { id: "s7-1", label: "Onboard Log Packets (XKF1–XKF5)", tag: "// DataFlash", title: "XKF Log Messages — Reading the EKF State", body: `EKF3 writes detailed state and diagnostic data to the SD card in DataFlash format. Key message types:<br><br><code>XKF1</code> — Core state estimates: position (NED), velocity (NED), attitude (roll/pitch/yaw), gyro bias<br><code>XKF2</code> — Earth and body magnetic field estimates, wind velocity<br><code>XKF3</code> — IMU accelerometer data used by each core<br><code>XKF4</code> — Innovation data and covariance estimates — the most useful for diagnostics<br><code>XKF5</code> — Optical flow and rangefinder fusion data<br><code>XKFS</code> — Lane selection events<br><br>Mission Planner's "Review a Log" view plots these directly. MAVExplorer (Python) enables scripted analysis across many logs for fleet diagnostics.` },
+      { id: "s7-2", label: "Innovation Test Ratios", tag: "// Health Checks", title: "Innovation Test Ratios — Quantifying Sensor Agreement", body: `The <strong>innovation test ratio</strong> for a sensor channel is the innovation normalised by the expected innovation variance: <code>ratio = y² / (H·P·Hᵀ + R)</code>. A ratio below 1.0 means the measurement is within the expected uncertainty — healthy. A ratio above 1.0 (especially sustained above the gate threshold of ~5) means the sensor and model consistently disagree.<br><br>EKF3 reports these ratios as part of <code>XKF4</code> logging. Specific fields: <code>IVN/IVE</code> (velocity north/east), <code>IPN/IPE</code> (position north/east), <code>IMX/IMY/IMZ</code> (compass axes), <code>IVD</code> (vertical velocity).<br><br>A post-flight review workflow: plot all innovation ratios together. Any channel with sustained ratios >1.0 is worth investigating — cross-reference with the raw sensor data to identify whether the sensor was noisy or the model was wrong.` },
+      { id: "s7-3", label: "Filter Fault Status (FS)", tag: "// Fault Flags", title: "Filter Fault Status — Decoding EKF Warning Flags", body: `EKF3 maintains a set of <strong>fault status flags</strong> that are surfaced to the GCS and logged. These are bitmask fields where each bit represents a specific health check:<br><br>Bit 0 — Bad magnetometer health<br>Bit 1 — Bad velocity health<br>Bit 2 — Bad position horizontal health<br>Bit 3 — Bad position vertical health<br>Bit 4 — Bad height sensor health<br>Bit 5 — Bad airspeed health<br><br>Flags are logged in DataFlash and reported via MAVLink <code>EKF_STATUS_REPORT</code> messages. Mission Planner displays the active EKF status in the HUD — the "EKF" indicator changes from green to amber/red as fault flags set. Any flag active at arming time prevents arming unless overridden with <code>ARMING_CHECK</code>.` },
+      { id: "s7-4", label: "EKF Failsafe", tag: "// Safety", title: "EKF Failsafe — Automatic DCM Recovery", body: `When EKF3 health deteriorates beyond the threshold set by <code>EK3_ERR_THRESH</code>, Ardupilot triggers the <strong>EKF failsafe</strong>. Depending on the <code>FS_EKF_ACTION</code> setting this causes:<br><br><code>1</code> — Warn only (log + GCS message)<br><code>2</code> — Switch to DCM and change to LAND mode<br><code>3</code> — Switch to DCM and change to ALTHOLD<br><br>The failsafe is a last-resort safety net — the vehicle no longer trusts EKF3 and falls back to DCM, which can maintain basic attitude control even without reliable position. The expectation is that the operator lands as quickly as possible.<br><br>EKF failsafe events are logged as <code>EKF_ERR</code> in DataFlash. Post-flight analysis should focus on which innovation channels triggered the threshold and why.` },
+      { id: "s7-5", label: "Webtools / Filter Review Tool", tag: "// Analysis", title: "Ardupilot Webtools — Browser-Based Log Analysis", body: `Ardupilot provides browser-based analysis tools at <strong>firmware.ardupilot.org/Tools/WebTools</strong> that run entirely in the browser — no installation required.<br><br>The <strong>Filter Review Tool</strong> is particularly useful for EKF diagnosis: upload a DataFlash log and it visualises the notch filter performance, IMU noise levels, and gyro frequency spectrum. This helps identify whether the harmonic notch filter is correctly targeting motor frequencies before they pollute the gyro signal that EKF3 receives.<br><br>The <strong>MAGFit Tool</strong> analyses compass calibration quality from flight logs. The <strong>PID Analyser</strong> cross-correlates actuator outputs with IMU response to assess attitude controller performance — complementary to EKF analysis since a poorly tuned attitude controller generates inputs that stress the EKF prediction model.` }
+    ]
+  }
+];
 
 /* ═══════════════════════════════════════════════
    RENDERER
 ═══════════════════════════════════════════════ */
-const canvas  = document.getElementById('mm-canvas');
-const svg     = document.getElementById('mm-svg');
-const panel   = document.getElementById('detail-panel');
-const dClose  = document.getElementById('detail-close');
-const dTag    = document.getElementById('detail-tag');
-const dTitle  = document.getElementById('detail-title');
-const dBody   = document.getElementById('detail-body');
-const center  = document.getElementById('mm-center');
+const leftPanel   = document.getElementById('mm-left');
+const detailArea  = document.getElementById('mm-detail-area');
+const breadcrumb  = document.getElementById('mm-breadcrumb');
 
-// Tier-1 positions: left side 2, right side 2 around center
-const T1_CONFIG = [
-  { side: 'left',  offsetY: -120 },
-  { side: 'left',  offsetY:  120 },
-  { side: 'right', offsetY: -120 },
-  { side: 'right', offsetY:  120 },
-];
+let activeLeafId = null;
 
-let lines = [];
-let state = {};   // nodeId -> { el, open, children }
+function renderLeft() {
+  MAP.forEach((section, si) => {
+    const t1 = document.createElement('div');
+    t1.className = 'mm-t1';
+    t1.id = 'sect-' + section.id;
 
-function px(el) {
-  const r = el.getBoundingClientRect();
-  const cr = canvas.getBoundingClientRect();
-  return {
-    x: r.left + r.width/2  - cr.left,
-    y: r.top  + r.height/2 - cr.top,
-    w: r.width, h: r.height
-  };
-}
+    const header = document.createElement('div');
+    header.className = 'mm-t1-header';
+    header.innerHTML = `
+      <div class="mm-t1-header-left">
+        <span class="mm-t1-index">0${si + 1}</span>
+        <span>${section.label}</span>
+      </div>
+      <span class="mm-t1-chevron">▶</span>
+    `;
 
-function setLine(lineEl, from, to) {
-  lineEl.setAttribute('x1', from.x);
-  lineEl.setAttribute('y1', from.y);
-  lineEl.setAttribute('x2', to.x);
-  lineEl.setAttribute('y2', to.y);
-}
+    const leaves = document.createElement('div');
+    leaves.className = 'mm-leaves';
 
-function refreshLines() {
-  lines.forEach(({line, fromId, toId, tier}) => {
-    const fromEl = fromId === 'center' ? center : state[fromId]?.el;
-    const toEl   = state[toId]?.el;
-    if (!fromEl || !toEl || toEl.style.display === 'none') {
-      line.style.display = 'none'; return;
-    }
-    line.style.display = '';
-    const cls = tier >= 3 ? 'leaf-line' : '';
-    line.setAttribute('class', cls + (state[toId]?.open ? ' active' : ''));
-    setLine(line, px(fromEl), px(toEl));
-  });
-}
-
-function makeNode(id, label, tier, isLeaf, detail) {
-  const el = document.createElement('div');
-  el.className = `mm-node tier-${isLeaf ? 'leaf' : tier}`;
-  el.id = 'mn-' + id;
-  el.style.display = 'none';
-  el.innerHTML = `<div class="mm-label">${label}${!isLeaf ? `<span class="mm-expand-icon">▶</span>` : ''}</div>`;
-  canvas.appendChild(el);
-
-  state[id] = { el, open: false, children: [], detail };
-
-  el.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (isLeaf && detail) {
-      showDetail(detail, label);
-    } else {
-      toggleNode(id);
-    }
-  });
-  return el;
-}
-
-function toggleNode(id) {
-  const s = state[id];
-  if (!s) return;
-  s.open = !s.open;
-  s.el.classList.toggle('open', s.open);
-
-  // show/hide children
-  s.children.forEach(cid => {
-    if (state[cid]) {
-      state[cid].el.style.display = s.open ? 'block' : 'none';
-      // collapse grandchildren when closing
-      if (!s.open) collapseAll(cid);
-    }
-  });
-
-  positionAll();
-  setTimeout(refreshLines, 50);
-}
-
-function collapseAll(id) {
-  const s = state[id];
-  if (!s) return;
-  if (s.open) { s.open = false; s.el.classList.remove('open'); }
-  s.children.forEach(collapseAll);
-  if (s.children.length) s.children.forEach(cid => {
-    if (state[cid]) state[cid].el.style.display = 'none';
-  });
-}
-
-/* Layout: place nodes relative to canvas center */
-let canvasW, canvasH, cx, cy;
-
-function measure() {
-  canvasW = canvas.offsetWidth;
-  canvasH = Math.max(canvas.offsetHeight, 600);
-  cx = canvasW / 2;
-  cy = canvasH / 2;
-}
-
-function posNode(el, x, y) {
-  el.style.left = (x - el.offsetWidth/2) + 'px';
-  el.style.top  = (y - el.offsetHeight/2) + 'px';
-}
-
-function positionAll() {
-  measure();
-
-  // Center node
-  center.style.left = (cx - center.offsetWidth/2) + 'px';
-  center.style.top  = (cy - center.offsetHeight/2) + 'px';
-
-  const t1Nodes = MAP.children;
-
-  t1Nodes.forEach((t1, i) => {
-    const cfg = T1_CONFIG[i] || { side: i%2===0 ? 'left':'right', offsetY: 0 };
-    const s = state[t1.id];
-    if (!s || s.el.style.display === 'none') return;
-
-    const xBase = cfg.side === 'left' ? cx - 220 : cx + 220;
-    posNode(s.el, xBase, cy + cfg.offsetY);
-
-    // Tier 2
-    if (s.open && t1.children) {
-      const t2list = t1.children;
-      const t2Span = (t2list.length - 1) * 80;
-      t2list.forEach((t2, j) => {
-        const s2 = state[t2.id];
-        if (!s2 || s2.el.style.display === 'none') return;
-        const t2x = cfg.side === 'left' ? cx - 440 : cx + 440;
-        const t2y = cy + cfg.offsetY - t2Span/2 + j * 80;
-        posNode(s2.el, t2x, t2y);
-
-        // Tier 3 / leaves
-        if (s2.open && t2.children) {
-          const leaves = t2.children;
-          const lSpan = (leaves.length - 1) * 55;
-          leaves.forEach((lf, k) => {
-            const sl = state[lf.id];
-            if (!sl || sl.el.style.display === 'none') return;
-            const lx = cfg.side === 'left' ? cx - 650 : cx + 650;
-            const ly = t2y - lSpan/2 + k * 55;
-            posNode(sl.el, lx, ly);
-          });
-        }
+    section.items.forEach(item => {
+      const leaf = document.createElement('div');
+      leaf.className = 'mm-leaf';
+      leaf.id = 'leaf-' + item.id;
+      leaf.textContent = item.label;
+      leaf.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDetail(item, section.label);
       });
-    }
+      leaves.appendChild(leaf);
+    });
+
+    t1.appendChild(header);
+    t1.appendChild(leaves);
+    leftPanel.appendChild(t1);
+
+    // Toggle section open/close
+    header.addEventListener('click', () => {
+      const isOpen = t1.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.mm-t1.open').forEach(el => el.classList.remove('open'));
+      if (!isOpen) t1.classList.add('open');
+    });
   });
-
-  adjustCanvasHeight();
 }
 
-function adjustCanvasHeight() {
-  let maxY = 0;
-  Object.values(state).forEach(s => {
-    if (s.el.style.display !== 'none') {
-      const t = parseFloat(s.el.style.top || 0) + s.el.offsetHeight;
-      if (t > maxY) maxY = t;
-    }
-  });
-  const needed = Math.max(600, maxY + 60);
-  canvas.style.minHeight = needed + 'px';
-  svg.setAttribute('viewBox', `0 0 ${canvas.offsetWidth} ${needed}`);
-  svg.style.height = needed + 'px';
+function showDetail(item, sectionLabel) {
+  // Deactivate previous leaf
+  if (activeLeafId) {
+    const prev = document.getElementById('leaf-' + activeLeafId);
+    if (prev) prev.classList.remove('active');
+  }
+  // Activate new leaf
+  activeLeafId = item.id;
+  const leafEl = document.getElementById('leaf-' + item.id);
+  if (leafEl) leafEl.classList.add('active');
+
+  // Update breadcrumb
+  breadcrumb.textContent = sectionLabel + '  /  ' + item.label;
+
+  // Render detail
+  detailArea.innerHTML = `
+    <div class="detail-content">
+      <div class="detail-tag">${item.tag || ''}</div>
+      <div class="detail-title">${item.title}</div>
+      <div class="detail-body">${item.body}</div>
+    </div>
+  `;
 }
 
-function makeLine(fromId, toId, tier) {
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  svg.appendChild(line);
-  lines.push({ line, fromId, toId, tier });
-  return line;
-}
-
-/* Build the graph from MAP */
-function build() {
-  MAP.children.forEach((t1, i) => {
-    const el1 = makeNode(t1.id, t1.label, 1, false, null);
-    el1.style.display = 'block'; // tier-1 always visible
-    makeLine('center', t1.id, 1);
-
-    if (t1.children) {
-      t1.children.forEach(t2 => {
-        const el2 = makeNode(t2.id, t2.label, 2, false, null);
-        state[t1.id].children.push(t2.id);
-        makeLine(t1.id, t2.id, 2);
-
-        if (t2.children) {
-          t2.children.forEach(lf => {
-            const el3 = makeNode(lf.id, lf.label, 3, true, lf.detail);
-            state[t2.id].children.push(lf.id);
-            makeLine(t2.id, lf.id, 3);
-          });
-        }
-      });
-    }
-  });
-
-  positionAll();
-  setTimeout(refreshLines, 100);
-}
-
-function showDetail(detail, fallbackTitle) {
-  dTag.textContent   = detail.tag   || '';
-  dTitle.textContent = detail.title || fallbackTitle;
-  dBody.innerHTML    = detail.body  || '';
-  panel.classList.add('open');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-dClose.addEventListener('click', () => {
-  panel.classList.remove('open');
-});
-
-window.addEventListener('resize', () => {
-  positionAll();
-  setTimeout(refreshLines, 80);
-});
-
-// Init
-window.addEventListener('load', () => {
-  build();
-});
+renderLeft();
 </script>
 
 </body>
